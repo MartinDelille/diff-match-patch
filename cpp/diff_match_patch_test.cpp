@@ -194,20 +194,20 @@ void diff_match_patch_test::testDiffLinesToChars() {
 
 void diff_match_patch_test::testDiffCharsToLines() {
   // First check that Diff equality works.
-  assertTrue("diff_charsToLines:", Diff(EQUAL, "a") == Diff(EQUAL, "a"));
+  assertTrue("diff_charsToLines:", Diff(Equal, "a") == Diff(Equal, "a"));
 
-  assertEquals("diff_charsToLines:", Diff(EQUAL, "a"), Diff(EQUAL, "a"));
+  assertEquals("diff_charsToLines:", Diff(Equal, "a"), Diff(Equal, "a"));
 
   // Convert chars up to lines.
   QList<Diff> diffs;
-  diffs << Diff(EQUAL, QString() + QChar((ushort)1) + QChar((ushort)2) + QChar((ushort)1));  // ("\u0001\u0002\u0001");
-  diffs << Diff(INSERT, QString() + QChar((ushort)2) + QChar((ushort)1) + QChar((ushort)2));  // ("\u0002\u0001\u0002");
+  diffs << Diff(Equal, QString() + QChar((ushort)1) + QChar((ushort)2) + QChar((ushort)1));  // ("\u0001\u0002\u0001");
+  diffs << Diff(Insert, QString() + QChar((ushort)2) + QChar((ushort)1) + QChar((ushort)2));  // ("\u0002\u0001\u0002");
   QStringList tmpVector;
   tmpVector.append("");
   tmpVector.append("alpha\n");
   tmpVector.append("beta\n");
   dmp.diff_charsToLines(diffs, tmpVector);
-  assertEquals("diff_charsToLines:", diffList(Diff(EQUAL, "alpha\nbeta\nalpha\n"), Diff(INSERT, "beta\nalpha\nbeta\n")), diffs);
+  assertEquals("diff_charsToLines:", diffList(Diff(Equal, "alpha\nbeta\nalpha\n"), Diff(Insert, "beta\nalpha\nbeta\n")), diffs);
 
   // More than 256 to reveal any 8-bit limitations.
   int n = 300;
@@ -223,9 +223,9 @@ void diff_match_patch_test::testDiffCharsToLines() {
   assertEquals("diff_linesToChars: More than 256 (setup).", n, tmpVector.size());
   assertEquals("diff_linesToChars: More than 256 (setup).", n, chars.length());
   tmpVector.prepend("");
-  diffs = diffList(Diff(DELETE, chars));
+  diffs = diffList(Diff(Delete, chars));
   dmp.diff_charsToLines(diffs, tmpVector);
-  assertEquals("diff_charsToLines: More than 256.", diffList(Diff(DELETE, lines)), diffs);
+  assertEquals("diff_charsToLines: More than 256.", diffList(Diff(Delete, lines)), diffs);
 }
 
 void diff_match_patch_test::testDiffCleanupMerge() {
@@ -234,49 +234,49 @@ void diff_match_patch_test::testDiffCleanupMerge() {
   dmp.diff_cleanupMerge(diffs);
   assertEquals("diff_cleanupMerge: Null case.", diffList(), diffs);
 
-  diffs = diffList(Diff(EQUAL, "a"), Diff(DELETE, "b"), Diff(INSERT, "c"));
+  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "b"), Diff(Insert, "c"));
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: No change case.", diffList(Diff(EQUAL, "a"), Diff(DELETE, "b"), Diff(INSERT, "c")), diffs);
+  assertEquals("diff_cleanupMerge: No change case.", diffList(Diff(Equal, "a"), Diff(Delete, "b"), Diff(Insert, "c")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "a"), Diff(EQUAL, "b"), Diff(EQUAL, "c"));
+  diffs = diffList(Diff(Equal, "a"), Diff(Equal, "b"), Diff(Equal, "c"));
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Merge equalities.", diffList(Diff(EQUAL, "abc")), diffs);
+  assertEquals("diff_cleanupMerge: Merge equalities.", diffList(Diff(Equal, "abc")), diffs);
 
-  diffs = diffList(Diff(DELETE, "a"), Diff(DELETE, "b"), Diff(DELETE, "c"));
+  diffs = diffList(Diff(Delete, "a"), Diff(Delete, "b"), Diff(Delete, "c"));
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Merge deletions.", diffList(Diff(DELETE, "abc")), diffs);
+  assertEquals("diff_cleanupMerge: Merge deletions.", diffList(Diff(Delete, "abc")), diffs);
 
-  diffs = diffList(Diff(INSERT, "a"), Diff(INSERT, "b"), Diff(INSERT, "c"));
+  diffs = diffList(Diff(Insert, "a"), Diff(Insert, "b"), Diff(Insert, "c"));
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Merge insertions.", diffList(Diff(INSERT, "abc")), diffs);
+  assertEquals("diff_cleanupMerge: Merge insertions.", diffList(Diff(Insert, "abc")), diffs);
 
-  diffs = diffList(Diff(DELETE, "a"), Diff(INSERT, "b"), Diff(DELETE, "c"), Diff(INSERT, "d"), Diff(EQUAL, "e"), Diff(EQUAL, "f"));
+  diffs = diffList(Diff(Delete, "a"), Diff(Insert, "b"), Diff(Delete, "c"), Diff(Insert, "d"), Diff(Equal, "e"), Diff(Equal, "f"));
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Merge interweave.", diffList(Diff(DELETE, "ac"), Diff(INSERT, "bd"), Diff(EQUAL, "ef")), diffs);
+  assertEquals("diff_cleanupMerge: Merge interweave.", diffList(Diff(Delete, "ac"), Diff(Insert, "bd"), Diff(Equal, "ef")), diffs);
 
-  diffs = diffList(Diff(DELETE, "a"), Diff(INSERT, "abc"), Diff(DELETE, "dc"));
+  diffs = diffList(Diff(Delete, "a"), Diff(Insert, "abc"), Diff(Delete, "dc"));
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Prefix and suffix detection.", diffList(Diff(EQUAL, "a"), Diff(DELETE, "d"), Diff(INSERT, "b"), Diff(EQUAL, "c")), diffs);
+  assertEquals("diff_cleanupMerge: Prefix and suffix detection.", diffList(Diff(Equal, "a"), Diff(Delete, "d"), Diff(Insert, "b"), Diff(Equal, "c")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "x"), Diff(DELETE, "a"), Diff(INSERT, "abc"), Diff(DELETE, "dc"), Diff(EQUAL, "y"));
+  diffs = diffList(Diff(Equal, "x"), Diff(Delete, "a"), Diff(Insert, "abc"), Diff(Delete, "dc"), Diff(Equal, "y"));
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Prefix and suffix detection with equalities.", diffList(Diff(EQUAL, "xa"), Diff(DELETE, "d"), Diff(INSERT, "b"), Diff(EQUAL, "cy")), diffs);
+  assertEquals("diff_cleanupMerge: Prefix and suffix detection with equalities.", diffList(Diff(Equal, "xa"), Diff(Delete, "d"), Diff(Insert, "b"), Diff(Equal, "cy")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "a"), Diff(INSERT, "ba"), Diff(EQUAL, "c"));
+  diffs = diffList(Diff(Equal, "a"), Diff(Insert, "ba"), Diff(Equal, "c"));
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Slide edit left.", diffList(Diff(INSERT, "ab"), Diff(EQUAL, "ac")), diffs);
+  assertEquals("diff_cleanupMerge: Slide edit left.", diffList(Diff(Insert, "ab"), Diff(Equal, "ac")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "c"), Diff(INSERT, "ab"), Diff(EQUAL, "a"));
+  diffs = diffList(Diff(Equal, "c"), Diff(Insert, "ab"), Diff(Equal, "a"));
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Slide edit right.", diffList(Diff(EQUAL, "ca"), Diff(INSERT, "ba")), diffs);
+  assertEquals("diff_cleanupMerge: Slide edit right.", diffList(Diff(Equal, "ca"), Diff(Insert, "ba")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "a"), Diff(DELETE, "b"), Diff(EQUAL, "c"), Diff(DELETE, "ac"), Diff(EQUAL, "x"));
+  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "b"), Diff(Equal, "c"), Diff(Delete, "ac"), Diff(Equal, "x"));
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Slide edit left recursive.", diffList(Diff(DELETE, "abc"), Diff(EQUAL, "acx")), diffs);
+  assertEquals("diff_cleanupMerge: Slide edit left recursive.", diffList(Diff(Delete, "abc"), Diff(Equal, "acx")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "x"), Diff(DELETE, "ca"), Diff(EQUAL, "c"), Diff(DELETE, "b"), Diff(EQUAL, "a"));
+  diffs = diffList(Diff(Equal, "x"), Diff(Delete, "ca"), Diff(Equal, "c"), Diff(Delete, "b"), Diff(Equal, "a"));
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Slide edit right recursive.", diffList(Diff(EQUAL, "xca"), Diff(DELETE, "cba")), diffs);
+  assertEquals("diff_cleanupMerge: Slide edit right recursive.", diffList(Diff(Equal, "xca"), Diff(Delete, "cba")), diffs);
 }
 
 void diff_match_patch_test::testDiffCleanupSemanticLossless() {
@@ -285,33 +285,33 @@ void diff_match_patch_test::testDiffCleanupSemanticLossless() {
   dmp.diff_cleanupSemanticLossless(diffs);
   assertEquals("diff_cleanupSemantic: Null case.", diffList(), diffs);
 
-  diffs = diffList(Diff(EQUAL, "AAA\r\n\r\nBBB"), Diff(INSERT, "\r\nDDD\r\n\r\nBBB"), Diff(EQUAL, "\r\nEEE"));
+  diffs = diffList(Diff(Equal, "AAA\r\n\r\nBBB"), Diff(Insert, "\r\nDDD\r\n\r\nBBB"), Diff(Equal, "\r\nEEE"));
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemanticLossless: Blank lines.", diffList(Diff(EQUAL, "AAA\r\n\r\n"), Diff(INSERT, "BBB\r\nDDD\r\n\r\n"), Diff(EQUAL, "BBB\r\nEEE")), diffs);
+  assertEquals("diff_cleanupSemanticLossless: Blank lines.", diffList(Diff(Equal, "AAA\r\n\r\n"), Diff(Insert, "BBB\r\nDDD\r\n\r\n"), Diff(Equal, "BBB\r\nEEE")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "AAA\r\nBBB"), Diff(INSERT, " DDD\r\nBBB"), Diff(EQUAL, " EEE"));
+  diffs = diffList(Diff(Equal, "AAA\r\nBBB"), Diff(Insert, " DDD\r\nBBB"), Diff(Equal, " EEE"));
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemanticLossless: Line boundaries.", diffList(Diff(EQUAL, "AAA\r\n"), Diff(INSERT, "BBB DDD\r\n"), Diff(EQUAL, "BBB EEE")), diffs);
+  assertEquals("diff_cleanupSemanticLossless: Line boundaries.", diffList(Diff(Equal, "AAA\r\n"), Diff(Insert, "BBB DDD\r\n"), Diff(Equal, "BBB EEE")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "The c"), Diff(INSERT, "ow and the c"), Diff(EQUAL, "at."));
+  diffs = diffList(Diff(Equal, "The c"), Diff(Insert, "ow and the c"), Diff(Equal, "at."));
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemantic: Word boundaries.", diffList(Diff(EQUAL, "The "), Diff(INSERT, "cow and the "), Diff(EQUAL, "cat.")), diffs);
+  assertEquals("diff_cleanupSemantic: Word boundaries.", diffList(Diff(Equal, "The "), Diff(Insert, "cow and the "), Diff(Equal, "cat.")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "The-c"), Diff(INSERT, "ow-and-the-c"), Diff(EQUAL, "at."));
+  diffs = diffList(Diff(Equal, "The-c"), Diff(Insert, "ow-and-the-c"), Diff(Equal, "at."));
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemantic: Alphanumeric boundaries.", diffList(Diff(EQUAL, "The-"), Diff(INSERT, "cow-and-the-"), Diff(EQUAL, "cat.")), diffs);
+  assertEquals("diff_cleanupSemantic: Alphanumeric boundaries.", diffList(Diff(Equal, "The-"), Diff(Insert, "cow-and-the-"), Diff(Equal, "cat.")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "a"), Diff(DELETE, "a"), Diff(EQUAL, "ax"));
+  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "a"), Diff(Equal, "ax"));
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemantic: Hitting the start.", diffList(Diff(DELETE, "a"), Diff(EQUAL, "aax")), diffs);
+  assertEquals("diff_cleanupSemantic: Hitting the start.", diffList(Diff(Delete, "a"), Diff(Equal, "aax")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "xa"), Diff(DELETE, "a"), Diff(EQUAL, "a"));
+  diffs = diffList(Diff(Equal, "xa"), Diff(Delete, "a"), Diff(Equal, "a"));
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemantic: Hitting the end.", diffList(Diff(EQUAL, "xaa"), Diff(DELETE, "a")), diffs);
+  assertEquals("diff_cleanupSemantic: Hitting the end.", diffList(Diff(Equal, "xaa"), Diff(Delete, "a")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "The xxx. The "), Diff(INSERT, "zzz. The "), Diff(EQUAL, "yyy."));
+  diffs = diffList(Diff(Equal, "The xxx. The "), Diff(Insert, "zzz. The "), Diff(Equal, "yyy."));
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemantic: Sentence boundaries.", diffList(Diff(EQUAL, "The xxx."), Diff(INSERT, " The zzz."), Diff(EQUAL, " The yyy.")), diffs);
+  assertEquals("diff_cleanupSemantic: Sentence boundaries.", diffList(Diff(Equal, "The xxx."), Diff(Insert, " The zzz."), Diff(Equal, " The yyy.")), diffs);
 }
 
 void diff_match_patch_test::testDiffCleanupSemantic() {
@@ -320,45 +320,45 @@ void diff_match_patch_test::testDiffCleanupSemantic() {
   dmp.diff_cleanupSemantic(diffs);
   assertEquals("diff_cleanupSemantic: Null case.", diffList(), diffs);
 
-  diffs = diffList(Diff(DELETE, "ab"), Diff(INSERT, "cd"), Diff(EQUAL, "12"), Diff(DELETE, "e"));
+  diffs = diffList(Diff(Delete, "ab"), Diff(Insert, "cd"), Diff(Equal, "12"), Diff(Delete, "e"));
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: No elimination #1.", diffList(Diff(DELETE, "ab"), Diff(INSERT, "cd"), Diff(EQUAL, "12"), Diff(DELETE, "e")), diffs);
+  assertEquals("diff_cleanupSemantic: No elimination #1.", diffList(Diff(Delete, "ab"), Diff(Insert, "cd"), Diff(Equal, "12"), Diff(Delete, "e")), diffs);
 
-  diffs = diffList(Diff(DELETE, "abc"), Diff(INSERT, "ABC"), Diff(EQUAL, "1234"), Diff(DELETE, "wxyz"));
+  diffs = diffList(Diff(Delete, "abc"), Diff(Insert, "ABC"), Diff(Equal, "1234"), Diff(Delete, "wxyz"));
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: No elimination #2.", diffList(Diff(DELETE, "abc"), Diff(INSERT, "ABC"), Diff(EQUAL, "1234"), Diff(DELETE, "wxyz")), diffs);
+  assertEquals("diff_cleanupSemantic: No elimination #2.", diffList(Diff(Delete, "abc"), Diff(Insert, "ABC"), Diff(Equal, "1234"), Diff(Delete, "wxyz")), diffs);
 
-  diffs = diffList(Diff(DELETE, "a"), Diff(EQUAL, "b"), Diff(DELETE, "c"));
+  diffs = diffList(Diff(Delete, "a"), Diff(Equal, "b"), Diff(Delete, "c"));
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Simple elimination.", diffList(Diff(DELETE, "abc"), Diff(INSERT, "b")), diffs);
+  assertEquals("diff_cleanupSemantic: Simple elimination.", diffList(Diff(Delete, "abc"), Diff(Insert, "b")), diffs);
 
-  diffs = diffList(Diff(DELETE, "ab"), Diff(EQUAL, "cd"), Diff(DELETE, "e"), Diff(EQUAL, "f"), Diff(INSERT, "g"));
+  diffs = diffList(Diff(Delete, "ab"), Diff(Equal, "cd"), Diff(Delete, "e"), Diff(Equal, "f"), Diff(Insert, "g"));
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Backpass elimination.", diffList(Diff(DELETE, "abcdef"), Diff(INSERT, "cdfg")), diffs);
+  assertEquals("diff_cleanupSemantic: Backpass elimination.", diffList(Diff(Delete, "abcdef"), Diff(Insert, "cdfg")), diffs);
 
-  diffs = diffList(Diff(INSERT, "1"), Diff(EQUAL, "A"), Diff(DELETE, "B"), Diff(INSERT, "2"), Diff(EQUAL, "_"), Diff(INSERT, "1"), Diff(EQUAL, "A"), Diff(DELETE, "B"), Diff(INSERT, "2"));
+  diffs = diffList(Diff(Insert, "1"), Diff(Equal, "A"), Diff(Delete, "B"), Diff(Insert, "2"), Diff(Equal, "_"), Diff(Insert, "1"), Diff(Equal, "A"), Diff(Delete, "B"), Diff(Insert, "2"));
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Multiple elimination.", diffList(Diff(DELETE, "AB_AB"), Diff(INSERT, "1A2_1A2")), diffs);
+  assertEquals("diff_cleanupSemantic: Multiple elimination.", diffList(Diff(Delete, "AB_AB"), Diff(Insert, "1A2_1A2")), diffs);
 
-  diffs = diffList(Diff(EQUAL, "The c"), Diff(DELETE, "ow and the c"), Diff(EQUAL, "at."));
+  diffs = diffList(Diff(Equal, "The c"), Diff(Delete, "ow and the c"), Diff(Equal, "at."));
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Word boundaries.", diffList(Diff(EQUAL, "The "), Diff(DELETE, "cow and the "), Diff(EQUAL, "cat.")), diffs);
+  assertEquals("diff_cleanupSemantic: Word boundaries.", diffList(Diff(Equal, "The "), Diff(Delete, "cow and the "), Diff(Equal, "cat.")), diffs);
 
-  diffs = diffList(Diff(DELETE, "abcxx"), Diff(INSERT, "xxdef"));
+  diffs = diffList(Diff(Delete, "abcxx"), Diff(Insert, "xxdef"));
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: No overlap elimination.", diffList(Diff(DELETE, "abcxx"), Diff(INSERT, "xxdef")), diffs);
+  assertEquals("diff_cleanupSemantic: No overlap elimination.", diffList(Diff(Delete, "abcxx"), Diff(Insert, "xxdef")), diffs);
 
-  diffs = diffList(Diff(DELETE, "abcxxx"), Diff(INSERT, "xxxdef"));
+  diffs = diffList(Diff(Delete, "abcxxx"), Diff(Insert, "xxxdef"));
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Overlap elimination.", diffList(Diff(DELETE, "abc"), Diff(EQUAL, "xxx"), Diff(INSERT, "def")), diffs);
+  assertEquals("diff_cleanupSemantic: Overlap elimination.", diffList(Diff(Delete, "abc"), Diff(Equal, "xxx"), Diff(Insert, "def")), diffs);
 
-  diffs = diffList(Diff(DELETE, "xxxabc"), Diff(INSERT, "defxxx"));
+  diffs = diffList(Diff(Delete, "xxxabc"), Diff(Insert, "defxxx"));
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Reverse overlap elimination.", diffList(Diff(INSERT, "def"), Diff(EQUAL, "xxx"), Diff(DELETE, "abc")), diffs);
+  assertEquals("diff_cleanupSemantic: Reverse overlap elimination.", diffList(Diff(Insert, "def"), Diff(Equal, "xxx"), Diff(Delete, "abc")), diffs);
 
-  diffs = diffList(Diff(DELETE, "abcd1212"), Diff(INSERT, "1212efghi"), Diff(EQUAL, "----"), Diff(DELETE, "A3"), Diff(INSERT, "3BC"));
+  diffs = diffList(Diff(Delete, "abcd1212"), Diff(Insert, "1212efghi"), Diff(Equal, "----"), Diff(Delete, "A3"), Diff(Insert, "3BC"));
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Two overlap eliminations.", diffList(Diff(DELETE, "abcd"), Diff(EQUAL, "1212"), Diff(INSERT, "efghi"), Diff(EQUAL, "----"), Diff(DELETE, "A"), Diff(EQUAL, "3"), Diff(INSERT, "BC")), diffs);
+  assertEquals("diff_cleanupSemantic: Two overlap eliminations.", diffList(Diff(Delete, "abcd"), Diff(Equal, "1212"), Diff(Insert, "efghi"), Diff(Equal, "----"), Diff(Delete, "A"), Diff(Equal, "3"), Diff(Insert, "BC")), diffs);
 }
 
 void diff_match_patch_test::testDiffCleanupEfficiency() {
@@ -368,45 +368,45 @@ void diff_match_patch_test::testDiffCleanupEfficiency() {
   dmp.diff_cleanupEfficiency(diffs);
   assertEquals("diff_cleanupEfficiency: Null case.", diffList(), diffs);
 
-  diffs = diffList(Diff(DELETE, "ab"), Diff(INSERT, "12"), Diff(EQUAL, "wxyz"), Diff(DELETE, "cd"), Diff(INSERT, "34"));
+  diffs = diffList(Diff(Delete, "ab"), Diff(Insert, "12"), Diff(Equal, "wxyz"), Diff(Delete, "cd"), Diff(Insert, "34"));
   dmp.diff_cleanupEfficiency(diffs);
-  assertEquals("diff_cleanupEfficiency: No elimination.", diffList(Diff(DELETE, "ab"), Diff(INSERT, "12"), Diff(EQUAL, "wxyz"), Diff(DELETE, "cd"), Diff(INSERT, "34")), diffs);
+  assertEquals("diff_cleanupEfficiency: No elimination.", diffList(Diff(Delete, "ab"), Diff(Insert, "12"), Diff(Equal, "wxyz"), Diff(Delete, "cd"), Diff(Insert, "34")), diffs);
 
-  diffs = diffList(Diff(DELETE, "ab"), Diff(INSERT, "12"), Diff(EQUAL, "xyz"), Diff(DELETE, "cd"), Diff(INSERT, "34"));
+  diffs = diffList(Diff(Delete, "ab"), Diff(Insert, "12"), Diff(Equal, "xyz"), Diff(Delete, "cd"), Diff(Insert, "34"));
   dmp.diff_cleanupEfficiency(diffs);
-  assertEquals("diff_cleanupEfficiency: Four-edit elimination.", diffList(Diff(DELETE, "abxyzcd"), Diff(INSERT, "12xyz34")), diffs);
+  assertEquals("diff_cleanupEfficiency: Four-edit elimination.", diffList(Diff(Delete, "abxyzcd"), Diff(Insert, "12xyz34")), diffs);
 
-  diffs = diffList(Diff(INSERT, "12"), Diff(EQUAL, "x"), Diff(DELETE, "cd"), Diff(INSERT, "34"));
+  diffs = diffList(Diff(Insert, "12"), Diff(Equal, "x"), Diff(Delete, "cd"), Diff(Insert, "34"));
   dmp.diff_cleanupEfficiency(diffs);
-  assertEquals("diff_cleanupEfficiency: Three-edit elimination.", diffList(Diff(DELETE, "xcd"), Diff(INSERT, "12x34")), diffs);
+  assertEquals("diff_cleanupEfficiency: Three-edit elimination.", diffList(Diff(Delete, "xcd"), Diff(Insert, "12x34")), diffs);
 
-  diffs = diffList(Diff(DELETE, "ab"), Diff(INSERT, "12"), Diff(EQUAL, "xy"), Diff(INSERT, "34"), Diff(EQUAL, "z"), Diff(DELETE, "cd"), Diff(INSERT, "56"));
+  diffs = diffList(Diff(Delete, "ab"), Diff(Insert, "12"), Diff(Equal, "xy"), Diff(Insert, "34"), Diff(Equal, "z"), Diff(Delete, "cd"), Diff(Insert, "56"));
   dmp.diff_cleanupEfficiency(diffs);
-  assertEquals("diff_cleanupEfficiency: Backpass elimination.", diffList(Diff(DELETE, "abxyzcd"), Diff(INSERT, "12xy34z56")), diffs);
+  assertEquals("diff_cleanupEfficiency: Backpass elimination.", diffList(Diff(Delete, "abxyzcd"), Diff(Insert, "12xy34z56")), diffs);
 
   dmp.Diff_EditCost = 5;
-  diffs = diffList(Diff(DELETE, "ab"), Diff(INSERT, "12"), Diff(EQUAL, "wxyz"), Diff(DELETE, "cd"), Diff(INSERT, "34"));
+  diffs = diffList(Diff(Delete, "ab"), Diff(Insert, "12"), Diff(Equal, "wxyz"), Diff(Delete, "cd"), Diff(Insert, "34"));
   dmp.diff_cleanupEfficiency(diffs);
-  assertEquals("diff_cleanupEfficiency: High cost elimination.", diffList(Diff(DELETE, "abwxyzcd"), Diff(INSERT, "12wxyz34")), diffs);
+  assertEquals("diff_cleanupEfficiency: High cost elimination.", diffList(Diff(Delete, "abwxyzcd"), Diff(Insert, "12wxyz34")), diffs);
   dmp.Diff_EditCost = 4;
 }
 
 void diff_match_patch_test::testDiffPrettyHtml() {
   // Pretty print.
-  QList<Diff> diffs = diffList(Diff(EQUAL, "a\n"), Diff(DELETE, "<B>b</B>"), Diff(INSERT, "c&d"));
+  QList<Diff> diffs = diffList(Diff(Equal, "a\n"), Diff(Delete, "<B>b</B>"), Diff(Insert, "c&d"));
   assertEquals("diff_prettyHtml:", "<span>a&para;<br></span><del style=\"background:#ffe6e6;\">&lt;B&gt;b&lt;/B&gt;</del><ins style=\"background:#e6ffe6;\">c&amp;d</ins>", dmp.diff_prettyHtml(diffs));
 }
 
 void diff_match_patch_test::testDiffText() {
   // Compute the source and destination texts.
-  QList<Diff> diffs = diffList(Diff(EQUAL, "jump"), Diff(DELETE, "s"), Diff(INSERT, "ed"), Diff(EQUAL, " over "), Diff(DELETE, "the"), Diff(INSERT, "a"), Diff(EQUAL, " lazy"));
+  QList<Diff> diffs = diffList(Diff(Equal, "jump"), Diff(Delete, "s"), Diff(Insert, "ed"), Diff(Equal, " over "), Diff(Delete, "the"), Diff(Insert, "a"), Diff(Equal, " lazy"));
   assertEquals("diff_text1:", "jumps over the lazy", dmp.diff_text1(diffs));
   assertEquals("diff_text2:", "jumped over a lazy", dmp.diff_text2(diffs));
 }
 
 void diff_match_patch_test::testDiffDelta() {
   // Convert a diff into delta string.
-  QList<Diff> diffs = diffList(Diff(EQUAL, "jump"), Diff(DELETE, "s"), Diff(INSERT, "ed"), Diff(EQUAL, " over "), Diff(DELETE, "the"), Diff(INSERT, "a"), Diff(EQUAL, " lazy"), Diff(INSERT, "old dog"));
+  QList<Diff> diffs = diffList(Diff(Equal, "jump"), Diff(Delete, "s"), Diff(Insert, "ed"), Diff(Equal, " over "), Diff(Delete, "the"), Diff(Insert, "a"), Diff(Equal, " lazy"), Diff(Insert, "old dog"));
   QString text1 = dmp.diff_text1(diffs);
   assertEquals("diff_text1: Base text.", "jumps over the lazy", text1);
 
@@ -443,7 +443,7 @@ void diff_match_patch_test::testDiffDelta() {
   */
 
   // Test deltas with special characters.
-  diffs = diffList(Diff(EQUAL, QString::fromWCharArray((const wchar_t*) L"\u0680 \000 \t %", 7)), Diff(DELETE, QString::fromWCharArray((const wchar_t*) L"\u0681 \001 \n ^", 7)), Diff(INSERT, QString::fromWCharArray((const wchar_t*) L"\u0682 \002 \\ |", 7)));
+  diffs = diffList(Diff(Equal, QString::fromWCharArray((const wchar_t*) L"\u0680 \000 \t %", 7)), Diff(Delete, QString::fromWCharArray((const wchar_t*) L"\u0681 \001 \n ^", 7)), Diff(Insert, QString::fromWCharArray((const wchar_t*) L"\u0682 \002 \\ |", 7)));
   text1 = dmp.diff_text1(diffs);
   assertEquals("diff_text1: Unicode text.", QString::fromWCharArray((const wchar_t*) L"\u0680 \000 \t %\u0681 \001 \n ^", 14), text1);
 
@@ -453,7 +453,7 @@ void diff_match_patch_test::testDiffDelta() {
   assertEquals("diff_fromDelta: Unicode.", diffs, dmp.diff_fromDelta(text1, delta));
 
   // Verify pool of unchanged characters.
-  diffs = diffList(Diff(INSERT, "A-Z a-z 0-9 - _ . ! ~ * ' ( ) ; / ? : @ & = + $ , # "));
+  diffs = diffList(Diff(Insert, "A-Z a-z 0-9 - _ . ! ~ * ' ( ) ; / ? : @ & = + $ , # "));
   QString text2 = dmp.diff_text2(diffs);
   assertEquals("diff_text2: Unchanged characters.", "A-Z a-z 0-9 - _ . ! ~ * \' ( ) ; / ? : @ & = + $ , # ", text2);
 
@@ -466,21 +466,21 @@ void diff_match_patch_test::testDiffDelta() {
 
 void diff_match_patch_test::testDiffXIndex() {
   // Translate a location in text1 to text2.
-  QList<Diff> diffs = diffList(Diff(DELETE, "a"), Diff(INSERT, "1234"), Diff(EQUAL, "xyz"));
+  QList<Diff> diffs = diffList(Diff(Delete, "a"), Diff(Insert, "1234"), Diff(Equal, "xyz"));
   assertEquals("diff_xIndex: Translation on equality.", 5, dmp.diff_xIndex(diffs, 2));
 
-  diffs = diffList(Diff(EQUAL, "a"), Diff(DELETE, "1234"), Diff(EQUAL, "xyz"));
+  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "1234"), Diff(Equal, "xyz"));
   assertEquals("diff_xIndex: Translation on deletion.", 1, dmp.diff_xIndex(diffs, 3));
 }
 
 void diff_match_patch_test::testDiffLevenshtein() {
-  QList<Diff> diffs = diffList(Diff(DELETE, "abc"), Diff(INSERT, "1234"), Diff(EQUAL, "xyz"));
+  QList<Diff> diffs = diffList(Diff(Delete, "abc"), Diff(Insert, "1234"), Diff(Equal, "xyz"));
   assertEquals("diff_levenshtein: Trailing equality.", 4, dmp.diff_levenshtein(diffs));
 
-  diffs = diffList(Diff(EQUAL, "xyz"), Diff(DELETE, "abc"), Diff(INSERT, "1234"));
+  diffs = diffList(Diff(Equal, "xyz"), Diff(Delete, "abc"), Diff(Insert, "1234"));
   assertEquals("diff_levenshtein: Leading equality.", 4, dmp.diff_levenshtein(diffs));
 
-  diffs = diffList(Diff(DELETE, "abc"), Diff(EQUAL, "xyz"), Diff(INSERT, "1234"));
+  diffs = diffList(Diff(Delete, "abc"), Diff(Equal, "xyz"), Diff(Insert, "1234"));
   assertEquals("diff_levenshtein: Middle equality.", 7, dmp.diff_levenshtein(diffs));
 }
 
@@ -491,11 +491,11 @@ void diff_match_patch_test::testDiffBisect() {
   // Since the resulting diff hasn't been normalized, it would be ok if
   // the insertion and deletion pairs are swapped.
   // If the order changes, tweak this test as required.
-  QList<Diff> diffs = diffList(Diff(DELETE, "c"), Diff(INSERT, "m"), Diff(EQUAL, "a"), Diff(DELETE, "t"), Diff(INSERT, "p"));
+  QList<Diff> diffs = diffList(Diff(Delete, "c"), Diff(Insert, "m"), Diff(Equal, "a"), Diff(Delete, "t"), Diff(Insert, "p"));
   assertEquals("diff_bisect: Normal.", diffs, dmp.diff_bisect(a, b, std::numeric_limits<clock_t>::max()));
 
   // Timeout.
-  diffs = diffList(Diff(DELETE, "cat"), Diff(INSERT, "map"));
+  diffs = diffList(Diff(Delete, "cat"), Diff(Insert, "map"));
   assertEquals("diff_bisect: Timeout.", diffs, dmp.diff_bisect(a, b, 0));
 }
 
@@ -504,43 +504,43 @@ void diff_match_patch_test::testDiffMain() {
   QList<Diff> diffs = diffList();
   assertEquals("diff_main: Null case.", diffs, dmp.diff_main("", "", false));
 
-  diffs = diffList(Diff(EQUAL, "abc"));
+  diffs = diffList(Diff(Equal, "abc"));
   assertEquals("diff_main: Equality.", diffs, dmp.diff_main("abc", "abc", false));
 
-  diffs = diffList(Diff(EQUAL, "ab"), Diff(INSERT, "123"), Diff(EQUAL, "c"));
+  diffs = diffList(Diff(Equal, "ab"), Diff(Insert, "123"), Diff(Equal, "c"));
   assertEquals("diff_main: Simple insertion.", diffs, dmp.diff_main("abc", "ab123c", false));
 
-  diffs = diffList(Diff(EQUAL, "a"), Diff(DELETE, "123"), Diff(EQUAL, "bc"));
+  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "123"), Diff(Equal, "bc"));
   assertEquals("diff_main: Simple deletion.", diffs, dmp.diff_main("a123bc", "abc", false));
 
-  diffs = diffList(Diff(EQUAL, "a"), Diff(INSERT, "123"), Diff(EQUAL, "b"), Diff(INSERT, "456"), Diff(EQUAL, "c"));
+  diffs = diffList(Diff(Equal, "a"), Diff(Insert, "123"), Diff(Equal, "b"), Diff(Insert, "456"), Diff(Equal, "c"));
   assertEquals("diff_main: Two insertions.", diffs, dmp.diff_main("abc", "a123b456c", false));
 
-  diffs = diffList(Diff(EQUAL, "a"), Diff(DELETE, "123"), Diff(EQUAL, "b"), Diff(DELETE, "456"), Diff(EQUAL, "c"));
+  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "123"), Diff(Equal, "b"), Diff(Delete, "456"), Diff(Equal, "c"));
   assertEquals("diff_main: Two deletions.", diffs, dmp.diff_main("a123b456c", "abc", false));
 
   // Perform a real diff.
   // Switch off the timeout.
   dmp.Diff_Timeout = 0;
-  diffs = diffList(Diff(DELETE, "a"), Diff(INSERT, "b"));
+  diffs = diffList(Diff(Delete, "a"), Diff(Insert, "b"));
   assertEquals("diff_main: Simple case #1.", diffs, dmp.diff_main("a", "b", false));
 
-  diffs = diffList(Diff(DELETE, "Apple"), Diff(INSERT, "Banana"), Diff(EQUAL, "s are a"), Diff(INSERT, "lso"), Diff(EQUAL, " fruit."));
+  diffs = diffList(Diff(Delete, "Apple"), Diff(Insert, "Banana"), Diff(Equal, "s are a"), Diff(Insert, "lso"), Diff(Equal, " fruit."));
   assertEquals("diff_main: Simple case #2.", diffs, dmp.diff_main("Apples are a fruit.", "Bananas are also fruit.", false));
 
-  diffs = diffList(Diff(DELETE, "a"), Diff(INSERT, QString::fromWCharArray((const wchar_t*) L"\u0680", 1)), Diff(EQUAL, "x"), Diff(DELETE, "\t"), Diff(INSERT, QString::fromWCharArray((const wchar_t*) L"\000", 1)));
+  diffs = diffList(Diff(Delete, "a"), Diff(Insert, QString::fromWCharArray((const wchar_t*) L"\u0680", 1)), Diff(Equal, "x"), Diff(Delete, "\t"), Diff(Insert, QString::fromWCharArray((const wchar_t*) L"\000", 1)));
   assertEquals("diff_main: Simple case #3.", diffs, dmp.diff_main("ax\t", QString::fromWCharArray((const wchar_t*) L"\u0680x\000", 3), false));
 
-  diffs = diffList(Diff(DELETE, "1"), Diff(EQUAL, "a"), Diff(DELETE, "y"), Diff(EQUAL, "b"), Diff(DELETE, "2"), Diff(INSERT, "xab"));
+  diffs = diffList(Diff(Delete, "1"), Diff(Equal, "a"), Diff(Delete, "y"), Diff(Equal, "b"), Diff(Delete, "2"), Diff(Insert, "xab"));
   assertEquals("diff_main: Overlap #1.", diffs, dmp.diff_main("1ayb2", "abxab", false));
 
-  diffs = diffList(Diff(INSERT, "xaxcx"), Diff(EQUAL, "abc"), Diff(DELETE, "y"));
+  diffs = diffList(Diff(Insert, "xaxcx"), Diff(Equal, "abc"), Diff(Delete, "y"));
   assertEquals("diff_main: Overlap #2.", diffs, dmp.diff_main("abcy", "xaxcxabc", false));
 
-  diffs = diffList(Diff(DELETE, "ABCD"), Diff(EQUAL, "a"), Diff(DELETE, "="), Diff(INSERT, "-"), Diff(EQUAL, "bcd"), Diff(DELETE, "="), Diff(INSERT, "-"), Diff(EQUAL, "efghijklmnopqrs"), Diff(DELETE, "EFGHIJKLMNOefg"));
+  diffs = diffList(Diff(Delete, "ABCD"), Diff(Equal, "a"), Diff(Delete, "="), Diff(Insert, "-"), Diff(Equal, "bcd"), Diff(Delete, "="), Diff(Insert, "-"), Diff(Equal, "efghijklmnopqrs"), Diff(Delete, "EFGHIJKLMNOefg"));
   assertEquals("diff_main: Overlap #3.", diffs, dmp.diff_main("ABCDa=bcd=efghijklmnopqrsEFGHIJKLMNOefg", "a-bcd-efghijklmnopqrs", false));
 
-  diffs = diffList(Diff(INSERT, " "), Diff(EQUAL, "a"), Diff(INSERT, "nd"), Diff(EQUAL, " [[Pennsylvania]]"), Diff(DELETE, " and [[New"));
+  diffs = diffList(Diff(Insert, " "), Diff(Equal, "a"), Diff(Insert, "nd"), Diff(Equal, " [[Pennsylvania]]"), Diff(Delete, " and [[New"));
   assertEquals("diff_main: Large equality.", diffs, dmp.diff_main("a [[Pennsylvania]] and [[New", " and [[Pennsylvania]]", false));
 
   dmp.Diff_Timeout = 0.1f;  // 100ms
@@ -688,7 +688,7 @@ void diff_match_patch_test::testPatchObj() {
   p.start2 = 21;
   p.length1 = 18;
   p.length2 = 17;
-  p.diffs = diffList(Diff(EQUAL, "jump"), Diff(DELETE, "s"), Diff(INSERT, "ed"), Diff(EQUAL, " over "), Diff(DELETE, "the"), Diff(INSERT, "a"), Diff(EQUAL, "\nlaz"));
+  p.diffs = diffList(Diff(Equal, "jump"), Diff(Delete, "s"), Diff(Insert, "ed"), Diff(Equal, " over "), Diff(Delete, "the"), Diff(Insert, "a"), Diff(Equal, "\nlaz"));
   QString strp = "@@ -21,18 +22,17 @@\n jump\n-s\n+ed\n  over \n-the\n+a\n %0Alaz\n";
   assertEquals("Patch: toString.", strp, p.toString());
 }
@@ -774,7 +774,7 @@ void diff_match_patch_test::testPatchMake() {
   patches = dmp.patch_make("`1234567890-=[]\\;',./", "~!@#$%^&*()_+{}|:\"<>?");
   assertEquals("patch_toText: Character encoding.", "@@ -1,21 +1,21 @@\n-%601234567890-=%5B%5D%5C;',./\n+~!@#$%25%5E&*()_+%7B%7D%7C:%22%3C%3E?\n", dmp.patch_toText(patches));
 
-  diffs = diffList(Diff(DELETE, "`1234567890-=[]\\;',./"), Diff(INSERT, "~!@#$%^&*()_+{}|:\"<>?"));
+  diffs = diffList(Diff(Delete, "`1234567890-=[]\\;',./"), Diff(Insert, "~!@#$%^&*()_+{}|:\"<>?"));
   assertEquals("patch_fromText: Character decoding.", diffs, dmp.patch_fromText("@@ -1,21 +1,21 @@\n-%601234567890-=%5B%5D%5C;',./\n+~!@#$%25%5E&*()_+%7B%7D%7C:%22%3C%3E?\n").value(0).diffs);
 
   text1 = "";
@@ -1106,10 +1106,10 @@ QStringList diff_match_patch_test::diff_rebuildtexts(QList<Diff> diffs) {
   QStringList text;
   text << QString("") << QString("");
   foreach (Diff myDiff, diffs) {
-    if (myDiff.operation != INSERT) {
+    if (myDiff.operation != Insert) {
       text[0] += myDiff.text;
     }
-    if (myDiff.operation != DELETE) {
+    if (myDiff.operation != Delete) {
       text[1] += myDiff.text;
     }
   }
@@ -1126,54 +1126,54 @@ void diff_match_patch_test::assertEmpty(const QString &strCase, const QStringLis
 // Private function for quickly building lists of diffs.
 QList<Diff> diff_match_patch_test::diffList(Diff d1, Diff d2, Diff d3, Diff d4, Diff d5,
   Diff d6, Diff d7, Diff d8, Diff d9, Diff d10) {
-  // Diff(INSERT, NULL) is invalid and thus is used as the default argument.
+  // Diff(Insert, NULL) is invalid and thus is used as the default argument.
   QList<Diff> listRet;
-  if (d1.operation == INSERT && d1.text == NULL) {
+  if (d1.operation == Insert && d1.text == NULL) {
     return listRet;
   }
   listRet << d1;
 
-  if (d2.operation == INSERT && d2.text == NULL) {
+  if (d2.operation == Insert && d2.text == NULL) {
     return listRet;
   }
   listRet << d2;
 
-  if (d3.operation == INSERT && d3.text == NULL) {
+  if (d3.operation == Insert && d3.text == NULL) {
     return listRet;
   }
   listRet << d3;
 
-  if (d4.operation == INSERT && d4.text == NULL) {
+  if (d4.operation == Insert && d4.text == NULL) {
     return listRet;
   }
   listRet << d4;
 
-  if (d5.operation == INSERT && d5.text == NULL) {
+  if (d5.operation == Insert && d5.text == NULL) {
     return listRet;
   }
   listRet << d5;
 
-  if (d6.operation == INSERT && d6.text == NULL) {
+  if (d6.operation == Insert && d6.text == NULL) {
     return listRet;
   }
   listRet << d6;
 
-  if (d7.operation == INSERT && d7.text == NULL) {
+  if (d7.operation == Insert && d7.text == NULL) {
     return listRet;
   }
   listRet << d7;
 
-  if (d8.operation == INSERT && d8.text == NULL) {
+  if (d8.operation == Insert && d8.text == NULL) {
     return listRet;
   }
   listRet << d8;
 
-  if (d9.operation == INSERT && d9.text == NULL) {
+  if (d9.operation == Insert && d9.text == NULL) {
     return listRet;
   }
   listRet << d9;
 
-  if (d10.operation == INSERT && d10.text == NULL) {
+  if (d10.operation == Insert && d10.text == NULL) {
     return listRet;
   }
   listRet << d10;

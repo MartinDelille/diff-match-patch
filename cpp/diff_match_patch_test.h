@@ -78,12 +78,12 @@ class diff_match_patch_test {
   QStringList diff_rebuildtexts(QList<Diff> diffs);
   // Private function for quickly building lists of diffs.
   QList<Diff> diffList(
-      // Diff(INSERT, NULL) is invalid and thus is used as the default argument.
-      Diff d1 = Diff(INSERT, NULL), Diff d2 = Diff(INSERT, NULL),
-      Diff d3 = Diff(INSERT, NULL), Diff d4 = Diff(INSERT, NULL),
-      Diff d5 = Diff(INSERT, NULL), Diff d6 = Diff(INSERT, NULL),
-      Diff d7 = Diff(INSERT, NULL), Diff d8 = Diff(INSERT, NULL),
-      Diff d9 = Diff(INSERT, NULL), Diff d10 = Diff(INSERT, NULL));
+      // Diff(Insert, NULL) is invalid and thus is used as the default argument.
+      Diff d1 = Diff(Insert, NULL), Diff d2 = Diff(Insert, NULL),
+      Diff d3 = Diff(Insert, NULL), Diff d4 = Diff(Insert, NULL),
+      Diff d5 = Diff(Insert, NULL), Diff d6 = Diff(Insert, NULL),
+      Diff d7 = Diff(Insert, NULL), Diff d8 = Diff(Insert, NULL),
+      Diff d9 = Diff(Insert, NULL), Diff d10 = Diff(Insert, NULL));
 };
 
 #endif // DIFF_MATCH_PATCH_TEST_H

@@ -59,12 +59,12 @@
 
 /**-
 * The data structure representing a diff is a Linked list of Diff objects:
-* {Diff(Operation.DELETE, "Hello"), Diff(Operation.INSERT, "Goodbye"),
-*  Diff(Operation.EQUAL, " world.")}
+* {Diff(Operation.Delete, "Hello"), Diff(Operation.Insert, "Goodbye"),
+*  Diff(Operation.Equal, " world.")}
 * which means: delete "Hello", add "Goodbye" and keep " world."
 */
 enum Operation {
-  DELETE, INSERT, EQUAL
+  Delete, Insert, Equal
 };
 
 
@@ -74,13 +74,13 @@ enum Operation {
 class Diff {
  public:
   Operation operation;
-  // One of: INSERT, DELETE or EQUAL.
+  // One of: Insert, Delete or Equal.
   QString text;
   // The text associated with this diff operation.
 
   /**
    * Constructor.  Initializes the diff with the provided values.
-   * @param operation One of INSERT, DELETE or EQUAL.
+   * @param operation One of Insert, Delete or Equal.
    * @param text The text being applied.
    */
   Diff(Operation _operation, const QString &_text);

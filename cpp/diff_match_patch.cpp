@@ -33,7 +33,7 @@
 
 /**
  * Constructor.  Initializes the diff with the provided values.
- * @param operation One of INSERT, DELETE or EQUAL
+ * @param operation One of Insert, Delete or Equal
  * @param text The text being applied
  */
 Diff::Diff(Operation _operation, const QString &_text) :
@@ -47,12 +47,12 @@ Diff::Diff() {
 
 QString Diff::strOperation(Operation op) {
   switch (op) {
-    case INSERT:
-      return "INSERT";
-    case DELETE:
-      return "DELETE";
-    case EQUAL:
-      return "EQUAL";
+    case Insert:
+      return "Insert";
+    case Delete:
+      return "Delete";
+    case Equal:
+      return "Equal";
   }
   throw "Invalid operation.";
 }
@@ -137,13 +137,13 @@ QString Patch::toString() {
   // Escape the body of the patch with %xx notation.
   foreach (Diff aDiff, diffs) {
     switch (aDiff.operation) {
-      case INSERT:
+      case Insert:
         text += QString('+');
         break;
-      case DELETE:
+      case Delete:
         text += QString('-');
         break;
-      case EQUAL:
+      case Equal:
         text += QString(' ');
         break;
     }
@@ -200,7 +200,7 @@ QList<Diff> diff_match_patch::diff_main(const QString &text1,
   QList<Diff> diffs;
   if (text1 == text2) {
     if (!text1.isEmpty()) {
-      diffs.append(Diff(EQUAL, text1));
+      diffs.append(Diff(Equal, text1));
     }
     return diffs;
   }
@@ -222,10 +222,10 @@ QList<Diff> diff_match_patch::diff_main(const QString &text1,
 
   // Restore the prefix and suffix.
   if (!commonprefix.isEmpty()) {
-    diffs.prepend(Diff(EQUAL, commonprefix));
+    diffs.prepend(Diff(Equal, commonprefix));
   }
   if (!commonsuffix.isEmpty()) {
-    diffs.append(Diff(EQUAL, commonsuffix));
+    diffs.append(Diff(Equal, commonsuffix));
   }
 
   diff_cleanupMerge(diffs);
@@ -240,13 +240,13 @@ QList<Diff> diff_match_patch::diff_compute(QString text1, QString text2,
 
   if (text1.isEmpty()) {
     // Just add some text (speedup).
-    diffs.append(Diff(INSERT, text2));
+    diffs.append(Diff(Insert, text2));
     return diffs;
   }
 
   if (text2.isEmpty()) {
     // Just delete some text (speedup).
-    diffs.append(Diff(DELETE, text1));
+    diffs.append(Diff(Delete, text1));
     return diffs;
   }
 
@@ -256,9 +256,9 @@ QList<Diff> diff_match_patch::diff_compute(QString text1, QString text2,
     const int i = longtext.indexOf(shorttext);
     if (i != -1) {
       // Shorter text is inside the longer text (speedup).
-      const Operation op = (text1.length() > text2.length()) ? DELETE : INSERT;
+      const Operation op = (text1.length() > text2.length()) ? Delete : Insert;
       diffs.append(Diff(op, longtext.left(i)));
-      diffs.append(Diff(EQUAL, shorttext));
+      diffs.append(Diff(Equal, shorttext));
       diffs.append(Diff(op, safeMid(longtext, i + shorttext.length())));
       return diffs;
     }
@@ -266,8 +266,8 @@ QList<Diff> diff_match_patch::diff_compute(QString text1, QString text2,
     if (shorttext.length() == 1) {
       // Single character string.
       // After the previous speedup, the character can't be an equality.
-      diffs.append(Diff(DELETE, text1));
-      diffs.append(Diff(INSERT, text2));
+      diffs.append(Diff(Delete, text1));
+      diffs.append(Diff(Insert, text2));
       return diffs;
     }
     // Garbage collect longtext and shorttext by scoping out.
@@ -289,7 +289,7 @@ QList<Diff> diff_match_patch::diff_compute(QString text1, QString text2,
                                           checklines, deadline);
     // Merge the results.
     diffs = diffs_a;
-    diffs.append(Diff(EQUAL, mid_common));
+    diffs.append(Diff(Equal, mid_common));
     diffs += diffs_b;
     return diffs;
   }
@@ -320,7 +320,7 @@ QList<Diff> diff_match_patch::diff_lineMode(QString text1, QString text2,
 
   // Rediff any replacement blocks, this time character-by-character.
   // Add a dummy entry at the end.
-  diffs.append(Diff(EQUAL, ""));
+  diffs.append(Diff(Equal, ""));
   int count_delete = 0;
   int count_insert = 0;
   QString text_delete = "";
@@ -330,15 +330,15 @@ QList<Diff> diff_match_patch::diff_lineMode(QString text1, QString text2,
   Diff *thisDiff = pointer.hasNext() ? &pointer.next() : NULL;
   while (thisDiff != NULL) {
     switch (thisDiff->operation) {
-      case INSERT:
+      case Insert:
         count_insert++;
         text_insert += thisDiff->text;
         break;
-      case DELETE:
+      case Delete:
         count_delete++;
         text_delete += thisDiff->text;
         break;
-      case EQUAL:
+      case Equal:
         // Upon reaching an equality, check for prior redundancies.
         if (count_delete >= 1 && count_insert >= 1) {
           // Delete the offending records and add the merged ones.
@@ -479,8 +479,8 @@ QList<Diff> diff_match_patch::diff_bisect(const QString &text1,
   // Diff took too long and hit the deadline or
   // number of diffs equals number of characters, no commonality at all.
   QList<Diff> diffs;
-  diffs.append(Diff(DELETE, text1));
-  diffs.append(Diff(INSERT, text2));
+  diffs.append(Diff(Delete, text1));
+  diffs.append(Diff(Insert, text2));
   return diffs;
 }
 
@@ -726,7 +726,7 @@ void diff_match_patch::diff_cleanupSemantic(QList<Diff> &diffs) {
   int length_deletions2 = 0;
   Diff *thisDiff = pointer.hasNext() ? &pointer.next() : NULL;
   while (thisDiff != NULL) {
-    if (thisDiff->operation == EQUAL) {
+    if (thisDiff->operation == Equal) {
       // Equality found.
       equalities.push(*thisDiff);
       length_insertions1 = length_insertions2;
@@ -736,7 +736,7 @@ void diff_match_patch::diff_cleanupSemantic(QList<Diff> &diffs) {
       lastequality = thisDiff->text;
     } else {
       // An insertion or deletion.
-      if (thisDiff->operation == INSERT) {
+      if (thisDiff->operation == Insert) {
         length_insertions2 += thisDiff->text.length();
       } else {
         length_deletions2 += thisDiff->text.length();
@@ -756,9 +756,9 @@ void diff_match_patch::diff_cleanupSemantic(QList<Diff> &diffs) {
         pointer.next();
 
         // Replace equality with a delete.
-        pointer.setValue(Diff(DELETE, lastequality));
+        pointer.setValue(Diff(Delete, lastequality));
         // Insert a corresponding an insert.
-        pointer.insert(Diff(INSERT, lastequality));
+        pointer.insert(Diff(Insert, lastequality));
 
         equalities.pop();  // Throw away the equality we just deleted.
         if (!equalities.isEmpty()) {
@@ -811,8 +811,8 @@ void diff_match_patch::diff_cleanupSemantic(QList<Diff> &diffs) {
     }
   }
   while (thisDiff != NULL) {
-    if (prevDiff->operation == DELETE &&
-        thisDiff->operation == INSERT) {
+    if (prevDiff->operation == Delete &&
+        thisDiff->operation == Insert) {
       QString deletion = prevDiff->text;
       QString insertion = thisDiff->text;
       int overlap_length1 = diff_commonOverlap(deletion, insertion);
@@ -822,7 +822,7 @@ void diff_match_patch::diff_cleanupSemantic(QList<Diff> &diffs) {
             overlap_length1 >= insertion.length() / 2.0) {
           // Overlap found.  Insert an equality and trim the surrounding edits.
           pointer.previous();
-          pointer.insert(Diff(EQUAL, insertion.left(overlap_length1)));
+          pointer.insert(Diff(Equal, insertion.left(overlap_length1)));
           prevDiff->text =
               deletion.left(deletion.length() - overlap_length1);
           thisDiff->text = safeMid(insertion, overlap_length1);
@@ -835,11 +835,11 @@ void diff_match_patch::diff_cleanupSemantic(QList<Diff> &diffs) {
           // Reverse overlap found.
           // Insert an equality and swap and trim the surrounding edits.
           pointer.previous();
-          pointer.insert(Diff(EQUAL, deletion.left(overlap_length2)));
-          prevDiff->operation = INSERT;
+          pointer.insert(Diff(Equal, deletion.left(overlap_length2)));
+          prevDiff->operation = Insert;
           prevDiff->text =
               insertion.left(insertion.length() - overlap_length2);
-          thisDiff->operation = DELETE;
+          thisDiff->operation = Delete;
           thisDiff->text = safeMid(deletion, overlap_length2);
           // pointer.insert inserts the element before the cursor, so there is
           // no need to step past the new element.
@@ -867,8 +867,8 @@ void diff_match_patch::diff_cleanupSemanticLossless(QList<Diff> &diffs) {
 
   // Intentionally ignore the first and last element (don't need checking).
   while (nextDiff != NULL) {
-    if (prevDiff->operation == EQUAL &&
-      nextDiff->operation == EQUAL) {
+    if (prevDiff->operation == Equal &&
+      nextDiff->operation == Equal) {
         // This is a single edit surrounded by equalities.
         equality1 = prevDiff->text;
         edit = thisDiff->text;
@@ -1003,7 +1003,7 @@ void diff_match_patch::diff_cleanupEfficiency(QList<Diff> &diffs) {
   Diff *safeDiff = thisDiff;
 
   while (thisDiff != NULL) {
-    if (thisDiff->operation == EQUAL) {
+    if (thisDiff->operation == Equal) {
       // Equality found.
       if (thisDiff->text.length() < Diff_EditCost && (post_ins || post_del)) {
         // Candidate found.
@@ -1020,7 +1020,7 @@ void diff_match_patch::diff_cleanupEfficiency(QList<Diff> &diffs) {
       post_ins = post_del = false;
     } else {
       // An insertion or deletion.
-      if (thisDiff->operation == DELETE) {
+      if (thisDiff->operation == Delete) {
         post_del = true;
       } else {
         post_ins = true;
@@ -1046,9 +1046,9 @@ void diff_match_patch::diff_cleanupEfficiency(QList<Diff> &diffs) {
         pointer.next();
 
         // Replace equality with a delete.
-        pointer.setValue(Diff(DELETE, lastequality));
+        pointer.setValue(Diff(Delete, lastequality));
         // Insert a corresponding an insert.
-        pointer.insert(Diff(INSERT, lastequality));
+        pointer.insert(Diff(Insert, lastequality));
         thisDiff = &pointer.previous();
         pointer.next();
 
@@ -1091,7 +1091,7 @@ void diff_match_patch::diff_cleanupEfficiency(QList<Diff> &diffs) {
 
 
 void diff_match_patch::diff_cleanupMerge(QList<Diff> &diffs) {
-  diffs.append(Diff(EQUAL, ""));  // Add a dummy entry at the end.
+  diffs.append(Diff(Equal, ""));  // Add a dummy entry at the end.
   QMutableListIterator<Diff> pointer(diffs);
   int count_delete = 0;
   int count_insert = 0;
@@ -1102,17 +1102,17 @@ void diff_match_patch::diff_cleanupMerge(QList<Diff> &diffs) {
   int commonlength;
   while (thisDiff != NULL) {
     switch (thisDiff->operation) {
-      case INSERT:
+      case Insert:
         count_insert++;
         text_insert += thisDiff->text;
         prevEqual = NULL;
         break;
-      case DELETE:
+      case Delete:
         count_delete++;
         text_delete += thisDiff->text;
         prevEqual = NULL;
         break;
-      case EQUAL:
+      case Equal:
         if (count_delete + count_insert > 1) {
           bool both_types = count_delete != 0 && count_insert != 0;
           // Delete the offending records.
@@ -1131,13 +1131,13 @@ void diff_match_patch::diff_cleanupMerge(QList<Diff> &diffs) {
             if (commonlength != 0) {
               if (pointer.hasPrevious()) {
                 thisDiff = &pointer.previous();
-                if (thisDiff->operation != EQUAL) {
+                if (thisDiff->operation != Equal) {
                   throw "Previous diff should have been an equality.";
                 }
                 thisDiff->text += text_insert.left(commonlength);
                 pointer.next();
               } else {
-                pointer.insert(Diff(EQUAL, text_insert.left(commonlength)));
+                pointer.insert(Diff(Equal, text_insert.left(commonlength)));
               }
               text_insert = safeMid(text_insert, commonlength);
               text_delete = safeMid(text_delete, commonlength);
@@ -1157,10 +1157,10 @@ void diff_match_patch::diff_cleanupMerge(QList<Diff> &diffs) {
           }
           // Insert the merged records.
           if (!text_delete.isEmpty()) {
-            pointer.insert(Diff(DELETE, text_delete));
+            pointer.insert(Diff(Delete, text_delete));
           }
           if (!text_insert.isEmpty()) {
-            pointer.insert(Diff(INSERT, text_insert));
+            pointer.insert(Diff(Insert, text_insert));
           }
           // Step forward to the equality.
           thisDiff = pointer.hasNext() ? &pointer.next() : NULL;
@@ -1200,8 +1200,8 @@ void diff_match_patch::diff_cleanupMerge(QList<Diff> &diffs) {
 
   // Intentionally ignore the first and last element (don't need checking).
   while (nextDiff != NULL) {
-    if (prevDiff->operation == EQUAL &&
-      nextDiff->operation == EQUAL) {
+    if (prevDiff->operation == Equal &&
+      nextDiff->operation == Equal) {
         // This is a single edit surrounded by equalities.
         if (thisDiff->text.endsWith(prevDiff->text)) {
           // Shift the edit over the previous equality.
@@ -1245,11 +1245,11 @@ int diff_match_patch::diff_xIndex(const QList<Diff> &diffs, int loc) {
   int last_chars2 = 0;
   Diff lastDiff;
   foreach(Diff aDiff, diffs) {
-    if (aDiff.operation != INSERT) {
+    if (aDiff.operation != Insert) {
       // Equality or deletion.
       chars1 += aDiff.text.length();
     }
-    if (aDiff.operation != DELETE) {
+    if (aDiff.operation != Delete) {
       // Equality or insertion.
       chars2 += aDiff.text.length();
     }
@@ -1261,7 +1261,7 @@ int diff_match_patch::diff_xIndex(const QList<Diff> &diffs, int loc) {
     last_chars1 = chars1;
     last_chars2 = chars2;
   }
-  if (lastDiff.operation == DELETE) {
+  if (lastDiff.operation == Delete) {
     // The location was deleted.
     return last_chars2;
   }
@@ -1278,15 +1278,15 @@ QString diff_match_patch::diff_prettyHtml(const QList<Diff> &diffs) {
     text.replace("&", "&amp;").replace("<", "&lt;")
         .replace(">", "&gt;").replace("\n", "&para;<br>");
     switch (aDiff.operation) {
-      case INSERT:
+      case Insert:
         html += QString("<ins style=\"background:#e6ffe6;\">") + text
             + QString("</ins>");
         break;
-      case DELETE:
+      case Delete:
         html += QString("<del style=\"background:#ffe6e6;\">") + text
             + QString("</del>");
         break;
-      case EQUAL:
+      case Equal:
         html += QString("<span>") + text + QString("</span>");
         break;
     }
@@ -1298,7 +1298,7 @@ QString diff_match_patch::diff_prettyHtml(const QList<Diff> &diffs) {
 QString diff_match_patch::diff_text1(const QList<Diff> &diffs) {
   QString text;
   foreach(Diff aDiff, diffs) {
-    if (aDiff.operation != INSERT) {
+    if (aDiff.operation != Insert) {
       text += aDiff.text;
     }
   }
@@ -1309,7 +1309,7 @@ QString diff_match_patch::diff_text1(const QList<Diff> &diffs) {
 QString diff_match_patch::diff_text2(const QList<Diff> &diffs) {
   QString text;
   foreach(Diff aDiff, diffs) {
-    if (aDiff.operation != DELETE) {
+    if (aDiff.operation != Delete) {
       text += aDiff.text;
     }
   }
@@ -1323,13 +1323,13 @@ int diff_match_patch::diff_levenshtein(const QList<Diff> &diffs) {
   int deletions = 0;
   foreach(Diff aDiff, diffs) {
     switch (aDiff.operation) {
-      case INSERT:
+      case Insert:
         insertions += aDiff.text.length();
         break;
-      case DELETE:
+      case Delete:
         deletions += aDiff.text.length();
         break;
-      case EQUAL:
+      case Equal:
         // A deletion and an insertion is one substitution.
         levenshtein += std::max(insertions, deletions);
         insertions = 0;
@@ -1346,17 +1346,17 @@ QString diff_match_patch::diff_toDelta(const QList<Diff> &diffs) {
   QString text;
   foreach(Diff aDiff, diffs) {
     switch (aDiff.operation) {
-      case INSERT: {
+      case Insert: {
         QString encoded = QString(QUrl::toPercentEncoding(aDiff.text,
             " !~*'();/?:@&=+$,#"));
         text += QString("+") + encoded + QString("\t");
         break;
       }
-      case DELETE:
+      case Delete:
         text += QString("-") + QString::number(aDiff.text.length())
             + QString("\t");
         break;
-      case EQUAL:
+      case Equal:
         text += QString("=") + QString::number(aDiff.text.length())
             + QString("\t");
         break;
@@ -1386,7 +1386,7 @@ QList<Diff> diff_match_patch::diff_fromDelta(const QString &text1,
     switch (token[0].toLatin1()) {
       case '+':
         param = QUrl::fromPercentEncoding(qPrintable(param));
-        diffs.append(Diff(INSERT, param));
+        diffs.append(Diff(Insert, param));
         break;
       case '-':
         // Fall through.
@@ -1400,9 +1400,9 @@ QList<Diff> diff_match_patch::diff_fromDelta(const QString &text1,
         text = safeMid(text1, pointer, n);
         pointer += n;
         if (token[0] == QChar('=')) {
-          diffs.append(Diff(EQUAL, text));
+          diffs.append(Diff(Equal, text));
         } else {
-          diffs.append(Diff(DELETE, text));
+          diffs.append(Diff(Delete, text));
         }
         break;
       }
@@ -1602,14 +1602,14 @@ void diff_match_patch::patch_addContext(Patch &patch, const QString &text) {
   QString prefix = safeMid(text, std::max(0, patch.start2 - padding),
       patch.start2 - std::max(0, patch.start2 - padding));
   if (!prefix.isEmpty()) {
-    patch.diffs.prepend(Diff(EQUAL, prefix));
+    patch.diffs.prepend(Diff(Equal, prefix));
   }
   // Add the suffix.
   QString suffix = safeMid(text, patch.start2 + patch.length1,
       std::min(text.length(), patch.start2 + patch.length1 + padding)
       - (patch.start2 + patch.length1));
   if (!suffix.isEmpty()) {
-    patch.diffs.append(Diff(EQUAL, suffix));
+    patch.diffs.append(Diff(Equal, suffix));
   }
 
   // Roll back the start points.
@@ -1676,26 +1676,26 @@ QList<Patch> diff_match_patch::patch_make(const QString &text1,
   QString prepatch_text = text1;
   QString postpatch_text = text1;
   foreach(Diff aDiff, diffs) {
-    if (patch.diffs.isEmpty() && aDiff.operation != EQUAL) {
+    if (patch.diffs.isEmpty() && aDiff.operation != Equal) {
       // A new patch starts here.
       patch.start1 = char_count1;
       patch.start2 = char_count2;
     }
 
     switch (aDiff.operation) {
-      case INSERT:
+      case Insert:
         patch.diffs.append(aDiff);
         patch.length2 += aDiff.text.length();
         postpatch_text = postpatch_text.left(char_count2)
             + aDiff.text + safeMid(postpatch_text, char_count2);
         break;
-      case DELETE:
+      case Delete:
         patch.length1 += aDiff.text.length();
         patch.diffs.append(aDiff);
         postpatch_text = postpatch_text.left(char_count2)
             + safeMid(postpatch_text, char_count2 + aDiff.text.length());
         break;
-      case EQUAL:
+      case Equal:
         if (aDiff.text.length() <= 2 * Patch_Margin
             && !patch.diffs.isEmpty() && !(aDiff == diffs.back())) {
           // Small equality inside a patch.
@@ -1722,10 +1722,10 @@ QList<Patch> diff_match_patch::patch_make(const QString &text1,
     }
 
     // Update the current character count.
-    if (aDiff.operation != INSERT) {
+    if (aDiff.operation != Insert) {
       char_count1 += aDiff.text.length();
     }
-    if (aDiff.operation != DELETE) {
+    if (aDiff.operation != Delete) {
       char_count2 += aDiff.text.length();
     }
   }
@@ -1830,20 +1830,20 @@ QPair<QString, QVector<bool> > diff_match_patch::patch_apply(
           diff_cleanupSemanticLossless(diffs);
           int index1 = 0;
           foreach(Diff aDiff, aPatch.diffs) {
-            if (aDiff.operation != EQUAL) {
+            if (aDiff.operation != Equal) {
               int index2 = diff_xIndex(diffs, index1);
-              if (aDiff.operation == INSERT) {
+              if (aDiff.operation == Insert) {
                 // Insertion
                 text = text.left(start_loc + index2) + aDiff.text
                     + safeMid(text, start_loc + index2);
-              } else if (aDiff.operation == DELETE) {
+              } else if (aDiff.operation == Delete) {
                 // Deletion
                 text = text.left(start_loc + index2)
                     + safeMid(text, start_loc + diff_xIndex(diffs,
                     index1 + aDiff.text.length()));
               }
             }
-            if (aDiff.operation != DELETE) {
+            if (aDiff.operation != Delete) {
               index1 += aDiff.text.length();
             }
           }
@@ -1877,9 +1877,9 @@ QString diff_match_patch::patch_addPadding(QList<Patch> &patches) {
   // Add some padding on start of first diff.
   Patch &firstPatch = patches.first();
   QList<Diff> &firstPatchDiffs = firstPatch.diffs;
-  if (firstPatchDiffs.empty() || firstPatchDiffs.first().operation != EQUAL) {
+  if (firstPatchDiffs.empty() || firstPatchDiffs.first().operation != Equal) {
     // Add nullPadding equality.
-    firstPatchDiffs.prepend(Diff(EQUAL, nullPadding));
+    firstPatchDiffs.prepend(Diff(Equal, nullPadding));
     firstPatch.start1 -= paddingLength;  // Should be 0.
     firstPatch.start2 -= paddingLength;  // Should be 0.
     firstPatch.length1 += paddingLength;
@@ -1899,9 +1899,9 @@ QString diff_match_patch::patch_addPadding(QList<Patch> &patches) {
   // Add some padding on end of last diff.
   Patch &lastPatch = patches.first();
   QList<Diff> &lastPatchDiffs = lastPatch.diffs;
-  if (lastPatchDiffs.empty() || lastPatchDiffs.last().operation != EQUAL) {
+  if (lastPatchDiffs.empty() || lastPatchDiffs.last().operation != Equal) {
     // Add nullPadding equality.
-    lastPatchDiffs.append(Diff(EQUAL, nullPadding));
+    lastPatchDiffs.append(Diff(Equal, nullPadding));
     lastPatch.length1 += paddingLength;
     lastPatch.length2 += paddingLength;
   } else if (paddingLength > lastPatchDiffs.last().text.length()) {
@@ -1950,21 +1950,21 @@ void diff_match_patch::patch_splitMax(QList<Patch> &patches) {
       patch.start2 = start2 - precontext.length();
       if (!precontext.isEmpty()) {
         patch.length1 = patch.length2 = precontext.length();
-        patch.diffs.append(Diff(EQUAL, precontext));
+        patch.diffs.append(Diff(Equal, precontext));
       }
       while (!bigpatch.diffs.isEmpty()
           && patch.length1 < patch_size - Patch_Margin) {
         diff_type = bigpatch.diffs.front().operation;
         diff_text = bigpatch.diffs.front().text;
-        if (diff_type == INSERT) {
+        if (diff_type == Insert) {
           // Insertions are harmless.
           patch.length2 += diff_text.length();
           start2 += diff_text.length();
           patch.diffs.append(bigpatch.diffs.front());
           bigpatch.diffs.removeFirst();
           empty = false;
-        } else if (diff_type == DELETE && patch.diffs.size() == 1
-            && patch.diffs.front().operation == EQUAL
+        } else if (diff_type == Delete && patch.diffs.size() == 1
+            && patch.diffs.front().operation == Equal
             && diff_text.length() > 2 * patch_size) {
           // This is a large deletion.  Let it pass in one chunk.
           patch.length1 += diff_text.length();
@@ -1978,7 +1978,7 @@ void diff_match_patch::patch_splitMax(QList<Patch> &patches) {
               patch_size - patch.length1 - Patch_Margin));
           patch.length1 += diff_text.length();
           start1 += diff_text.length();
-          if (diff_type == EQUAL) {
+          if (diff_type == Equal) {
             patch.length2 += diff_text.length();
             start2 += diff_text.length();
           } else {
@@ -2006,10 +2006,10 @@ void diff_match_patch::patch_splitMax(QList<Patch> &patches) {
         patch.length1 += postcontext.length();
         patch.length2 += postcontext.length();
         if (!patch.diffs.isEmpty()
-            && patch.diffs.back().operation == EQUAL) {
+            && patch.diffs.back().operation == Equal) {
           patch.diffs.back().text += postcontext;
         } else {
-          patch.diffs.append(Diff(EQUAL, postcontext));
+          patch.diffs.append(Diff(Equal, postcontext));
         }
       }
       if (!empty) {
@@ -2080,13 +2080,13 @@ QList<Patch> diff_match_patch::patch_fromText(const QString &textline) {
       line = QUrl::fromPercentEncoding(qPrintable(line));
       if (sign == '-') {
         // Deletion.
-        patch.diffs.append(Diff(DELETE, line));
+        patch.diffs.append(Diff(Delete, line));
       } else if (sign == '+') {
         // Insertion.
-        patch.diffs.append(Diff(INSERT, line));
+        patch.diffs.append(Diff(Insert, line));
       } else if (sign == ' ') {
         // Minor equality.
-        patch.diffs.append(Diff(EQUAL, line));
+        patch.diffs.append(Diff(Equal, line));
       } else if (sign == '@') {
         // Start of next patch.
         break;
