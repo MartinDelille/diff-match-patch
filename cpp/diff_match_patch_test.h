@@ -16,6 +16,11 @@
  * limitations under the License.
  */
 
+// Modified by gk017, 2014-08-07
+// Original file licensed under the Apache License, Version 2.0
+// See the LICENSE file for the original license text.
+
+
 #ifndef DIFF_MATCH_PATCH_TEST_H
 #define DIFF_MATCH_PATCH_TEST_H
 

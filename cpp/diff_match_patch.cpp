@@ -16,6 +16,10 @@
  * limitations under the License.
  */
 
+// Modified by gk017, 2014-08-07
+// Original file licensed under the Apache License, Version 2.0
+// See the LICENSE file for the original license text.
+
 #include <algorithm>
 #include <limits>
 // Code known to compile and run with Qt 4.3 through Qt 4.7.
