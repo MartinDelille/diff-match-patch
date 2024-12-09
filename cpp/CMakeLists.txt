@@ -5,7 +5,7 @@ set(META_PROJECT_NAME        "diff-match-patch")
 set(META_PROJECT_DESCRIPTION "diff-match-patch")
 set(META_VERSION_MAJOR       "0")
 set(META_VERSION_MINOR       "0")
-set(META_VERSION_PATCH       "3")
+set(META_VERSION_PATCH       "4")
 set(META_VERSION             "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
 
 # Define the project itself
@@ -15,7 +15,8 @@ project(${META_PROJECT_NAME}
     LANGUAGES C CXX
 )
 
-find_package(Qt5 REQUIRED COMPONENTS Core)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 
 # Target name
 set(target diff-match-patch)
@@ -50,7 +51,7 @@ target_include_directories(${target}
 # Libraries
 target_link_libraries(${target}
     PUBLIC
-        Qt5::Core
+        Qt${QT_VERSION_MAJOR}::Core
 )
 
 add_executable(
