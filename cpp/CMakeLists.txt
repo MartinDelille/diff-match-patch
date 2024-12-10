@@ -24,8 +24,6 @@ set(target diff-match-patch)
 add_library(${target}
     diff_match_patch.h
     diff_match_patch.cpp
-    diff_match_patch_test.h
-    diff_match_patch_test.cpp
 )
 
 # Create namespaced alias
@@ -54,3 +52,14 @@ target_link_libraries(${target}
     PUBLIC
         Qt5::Core
 )
+
+add_executable(
+    diff_match_patch_test
+    diff_match_patch_test.h
+    diff_match_patch_test.cpp
+)
+
+target_link_libraries(diff_match_patch_test PRIVATE diff-match-patch)
+
+enable_testing()
+add_test(NAME diff_match_patch_test COMMAND diff_match_patch_test)
