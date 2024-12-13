@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 diff_match_patch_test::diff_match_patch_test() {}
 
 int diff_match_patch_test::run_all_tests() {
-  QTime t;
+  QElapsedTimer t;
   int result = 0;
   t.start();
   try {
@@ -78,7 +78,7 @@ int diff_match_patch_test::run_all_tests() {
     qDebug("Test failed: %s", qPrintable(strCase));
     result = -1;
   }
-  qDebug("Total time: %d ms", t.elapsed());
+  qDebug("Total time: %lld ms", t.elapsed());
   return result;
 }
 
