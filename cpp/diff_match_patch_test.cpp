@@ -1099,7 +1099,7 @@ void diff_match_patch_test::testPatchMake() {
 
   // Test null inputs.
   try {
-    dmp.patch_make(NULL, NULL);
+    dmp.patch_make(nullptr, nullptr);
     assertFalse("patch_make: Null inputs.", true);
   } catch (const char *ex) {
     // Exception expected.
@@ -1534,54 +1534,54 @@ void diff_match_patch_test::assertEmpty(const QString &strCase,
 QList<Diff> diff_match_patch_test::diffList(Diff d1, Diff d2, Diff d3, Diff d4,
                                             Diff d5, Diff d6, Diff d7, Diff d8,
                                             Diff d9, Diff d10) {
-  // Diff(Insert, NULL) is invalid and thus is used as the default argument.
+  // Diff(Insert, nullptr) is invalid and thus is used as the default argument.
   QList<Diff> listRet;
-  if (d1.operation == Insert && d1.text == NULL) {
+  if (d1.operation == Insert && d1.text.isNull()) {
     return listRet;
   }
   listRet << d1;
 
-  if (d2.operation == Insert && d2.text == NULL) {
+  if (d2.operation == Insert && d2.text.isNull()) {
     return listRet;
   }
   listRet << d2;
 
-  if (d3.operation == Insert && d3.text == NULL) {
+  if (d3.operation == Insert && d3.text.isNull()) {
     return listRet;
   }
   listRet << d3;
 
-  if (d4.operation == Insert && d4.text == NULL) {
+  if (d4.operation == Insert && d4.text.isNull()) {
     return listRet;
   }
   listRet << d4;
 
-  if (d5.operation == Insert && d5.text == NULL) {
+  if (d5.operation == Insert && d5.text.isNull()) {
     return listRet;
   }
   listRet << d5;
 
-  if (d6.operation == Insert && d6.text == NULL) {
+  if (d6.operation == Insert && d6.text.isNull()) {
     return listRet;
   }
   listRet << d6;
 
-  if (d7.operation == Insert && d7.text == NULL) {
+  if (d7.operation == Insert && d7.text.isNull()) {
     return listRet;
   }
   listRet << d7;
 
-  if (d8.operation == Insert && d8.text == NULL) {
+  if (d8.operation == Insert && d8.text.isNull()) {
     return listRet;
   }
   listRet << d8;
 
-  if (d9.operation == Insert && d9.text == NULL) {
+  if (d9.operation == Insert && d9.text.isNull()) {
     return listRet;
   }
   listRet << d9;
 
-  if (d10.operation == Insert && d10.text == NULL) {
+  if (d10.operation == Insert && d10.text.isNull()) {
     return listRet;
   }
   listRet << d10;
