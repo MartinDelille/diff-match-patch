@@ -60,21 +60,17 @@
 
  */
 
-
 /**-
-* The data structure representing a diff is a Linked list of Diff objects:
-* {Diff(Operation.Delete, "Hello"), Diff(Operation.Insert, "Goodbye"),
-*  Diff(Operation.Equal, " world.")}
-* which means: delete "Hello", add "Goodbye" and keep " world."
-*/
-enum Operation {
-  Delete, Insert, Equal
-};
-
+ * The data structure representing a diff is a Linked list of Diff objects:
+ * {Diff(Operation.Delete, "Hello"), Diff(Operation.Insert, "Goodbye"),
+ *  Diff(Operation.Equal, " world.")}
+ * which means: delete "Hello", add "Goodbye" and keep " world."
+ */
+enum Operation { Delete, Insert, Equal };
 
 /**
-* Class representing one diff operation.
-*/
+ * Class representing one diff operation.
+ */
 class Diff {
  public:
   Operation operation;
@@ -97,10 +93,9 @@ class Diff {
   static QString strOperation(Operation op);
 };
 
-
 /**
-* Class representing one patch operation.
-*/
+ * Class representing one patch operation.
+ */
 class Patch {
  public:
   QList<Diff> diffs;
@@ -117,13 +112,11 @@ class Patch {
   QString toString();
 };
 
-
 /**
  * Class containing the diff, match and patch methods.
  * Also contains the behaviour settings.
  */
 class diff_match_patch {
-
   friend class diff_match_patch_test;
 
  public:
@@ -156,13 +149,10 @@ class diff_match_patch {
   static QRegExp BLANKLINEEND;
   static QRegExp BLANKLINESTART;
 
-
  public:
-
   diff_match_patch();
 
   //  DIFF FUNCTIONS
-
 
   /**
    * Find the differences between two texts.
@@ -184,7 +174,8 @@ class diff_match_patch {
    *     If true, then run a faster slightly less optimal diff.
    * @return Linked List of Diff objects.
    */
-  QList<Diff> diff_main(const QString &text1, const QString &text2, bool checklines);
+  QList<Diff> diff_main(const QString &text1, const QString &text2,
+                        bool checklines);
 
   /**
    * Find the differences between two texts.  Simplifies the problem by
@@ -199,7 +190,8 @@ class diff_match_patch {
    * @return Linked List of Diff objects.
    */
  private:
-  QList<Diff> diff_main(const QString &text1, const QString &text2, bool checklines, clock_t deadline);
+  QList<Diff> diff_main(const QString &text1, const QString &text2,
+                        bool checklines, clock_t deadline);
 
   /**
    * Find the differences between two texts.  Assumes that the texts do not
@@ -213,7 +205,8 @@ class diff_match_patch {
    * @return Linked List of Diff objects.
    */
  private:
-  QList<Diff> diff_compute(QString text1, QString text2, bool checklines, clock_t deadline);
+  QList<Diff> diff_compute(QString text1, QString text2, bool checklines,
+                           clock_t deadline);
 
   /**
    * Do a quick line-level diff on both strings, then rediff the parts for
@@ -236,7 +229,8 @@ class diff_match_patch {
    * @return Linked List of Diff objects.
    */
  protected:
-  QList<Diff> diff_bisect(const QString &text1, const QString &text2, clock_t deadline);
+  QList<Diff> diff_bisect(const QString &text1, const QString &text2,
+                          clock_t deadline);
 
   /**
    * Given the location of the 'middle snake', split the diff in two parts
@@ -249,7 +243,8 @@ class diff_match_patch {
    * @return LinkedList of Diff objects.
    */
  private:
-  QList<Diff> diff_bisectSplit(const QString &text1, const QString &text2, int x, int y, clock_t deadline);
+  QList<Diff> diff_bisectSplit(const QString &text1, const QString &text2,
+                               int x, int y, clock_t deadline);
 
   /**
    * Split two texts into a list of strings.  Reduce the texts to a string of
@@ -261,7 +256,10 @@ class diff_match_patch {
    *     of the List of unique strings is intentionally blank.
    */
  protected:
-  QList<QVariant> diff_linesToChars(const QString &text1, const QString &text2); // return elems 0 and 1 are QString, elem 2 is QStringList
+  QList<QVariant> diff_linesToChars(
+      const QString &text1,
+      const QString
+          &text2);  // return elems 0 and 1 are QString, elem 2 is QStringList
 
   /**
    * Split a text into a list of strings.  Reduce the texts to a string of
@@ -336,7 +334,8 @@ class diff_match_patch {
    *     and the common middle.  Or null if there was no match.
    */
  private:
-  QStringList diff_halfMatchI(const QString &longtext, const QString &shorttext, int i);
+  QStringList diff_halfMatchI(const QString &longtext, const QString &shorttext,
+                              int i);
 
   /**
    * Reduce the number of edits by eliminating semantically trivial equalities.
@@ -446,9 +445,7 @@ class diff_match_patch {
  public:
   QList<Diff> diff_fromDelta(const QString &text1, const QString &delta);
 
-
   //  MATCH FUNCTIONS
-
 
   /**
    * Locate the best instance of 'pattern' in 'text' near 'loc'.
@@ -491,9 +488,7 @@ class diff_match_patch {
  protected:
   QMap<QChar, int> match_alphabet(const QString &pattern);
 
-
- //  PATCH FUNCTIONS
-
+  //  PATCH FUNCTIONS
 
   /**
    * Increase the context until it is unique,
@@ -530,10 +525,12 @@ class diff_match_patch {
    * @param text2 Ignored.
    * @param diffs Array of diff tuples for text1 to text2.
    * @return LinkedList of Patch objects.
-   * @deprecated Prefer patch_make(const QString &text1, const QList<Diff> &diffs).
+   * @deprecated Prefer patch_make(const QString &text1, const QList<Diff>
+   * &diffs).
    */
  public:
-  QList<Patch> patch_make(const QString &text1, const QString &text2, const QList<Diff> &diffs);
+  QList<Patch> patch_make(const QString &text1, const QString &text2,
+                          const QList<Diff> &diffs);
 
   /**
    * Compute a list of patches to turn text1 into text2.
@@ -562,7 +559,8 @@ class diff_match_patch {
    *      boolean values.
    */
  public:
-  QPair<QString,QVector<bool> > patch_apply(QList<Patch> &patches, const QString &text);
+  QPair<QString, QVector<bool> > patch_apply(QList<Patch> &patches,
+                                             const QString &text);
 
   /**
    * Add some padding on text start and end so that edges can match something.
@@ -626,4 +624,4 @@ class diff_match_patch {
   }
 };
 
-#endif // DIFF_MATCH_PATCH_H
+#endif  // DIFF_MATCH_PATCH_H
