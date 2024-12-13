@@ -20,7 +20,6 @@
 // Original file licensed under the Apache License, Version 2.0
 // See the LICENSE file for the original license text.
 
-
 #ifndef DIFF_MATCH_PATCH_TEST_H
 #define DIFF_MATCH_PATCH_TEST_H
 
@@ -68,13 +67,19 @@ class diff_match_patch_test {
 
   // Define equality.
   void assertEquals(const QString &strCase, int n1, int n2);
-  void assertEquals(const QString &strCase, const QString &s1, const QString &s2);
+  void assertEquals(const QString &strCase, const QString &s1,
+                    const QString &s2);
   void assertEquals(const QString &strCase, const Diff &d1, const Diff &d2);
-  void assertEquals(const QString &strCase, const QList<Diff> &list1, const QList<Diff> &list2);
-  void assertEquals(const QString &strCase, const QList<QVariant> &list1, const QList<QVariant> &list2);
-  void assertEquals(const QString &strCase, const QVariant &var1, const QVariant &var2);
-  void assertEquals(const QString &strCase, const QMap<QChar, int> &m1, const QMap<QChar, int> &m2);
-  void assertEquals(const QString &strCase, const QStringList &list1, const QStringList &list2);
+  void assertEquals(const QString &strCase, const QList<Diff> &list1,
+                    const QList<Diff> &list2);
+  void assertEquals(const QString &strCase, const QList<QVariant> &list1,
+                    const QList<QVariant> &list2);
+  void assertEquals(const QString &strCase, const QVariant &var1,
+                    const QVariant &var2);
+  void assertEquals(const QString &strCase, const QMap<QChar, int> &m1,
+                    const QMap<QChar, int> &m2);
+  void assertEquals(const QString &strCase, const QStringList &list1,
+                    const QStringList &list2);
   void assertTrue(const QString &strCase, bool value);
   void assertFalse(const QString &strCase, bool value);
   void assertEmpty(const QString &strCase, const QStringList &list);
@@ -91,4 +96,4 @@ class diff_match_patch_test {
       Diff d9 = Diff(Insert, NULL), Diff d10 = Diff(Insert, NULL));
 };
 
-#endif // DIFF_MATCH_PATCH_TEST_H
+#endif  // DIFF_MATCH_PATCH_TEST_H
