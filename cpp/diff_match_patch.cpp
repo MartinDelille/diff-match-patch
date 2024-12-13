@@ -553,7 +553,7 @@ void diff_match_patch::diff_charsToLines(QList<Diff> &diffs,
 int diff_match_patch::diff_commonPrefix(const QString &text1,
                                         const QString &text2) {
   // Performance analysis: http://neil.fraser.name/news/2007/10/09/
-  const int n = std::min(text1.length(), text2.length());
+  const int n = std::min<int>(text1.length(), text2.length());
   for (int i = 0; i < n; i++) {
     if (text1[i] != text2[i]) {
       return i;
@@ -567,7 +567,7 @@ int diff_match_patch::diff_commonSuffix(const QString &text1,
   // Performance analysis: http://neil.fraser.name/news/2007/10/09/
   const int text1_length = text1.length();
   const int text2_length = text2.length();
-  const int n = std::min(text1_length, text2_length);
+  const int n = std::min<int>(text1_length, text2_length);
   for (int i = 1; i <= n; i++) {
     if (text1[text1_length - i] != text2[text2_length - i]) {
       return i - 1;
@@ -593,7 +593,7 @@ int diff_match_patch::diff_commonOverlap(const QString &text1,
   } else if (text1_length < text2_length) {
     text2_trunc = text2.left(text1_length);
   }
-  const int text_length = std::min(text1_length, text2_length);
+  const int text_length = std::min<int>(text1_length, text2_length);
   // Quick check for the worst case.
   if (text1_trunc == text2_trunc) {
     return text_length;
@@ -951,8 +951,10 @@ int diff_match_patch::diff_cleanupSemanticScore(const QString &one,
 }
 
 // Define some regex patterns for matching boundaries.
-QRegularExpression diff_match_patch::BLANKLINEEND = QRegularExpression("\\n\\r?\\n$");
-QRegularExpression diff_match_patch::BLANKLINESTART = QRegularExpression("^\\r?\\n\\r?\\n");
+QRegularExpression diff_match_patch::BLANKLINEEND =
+    QRegularExpression("\\n\\r?\\n$");
+QRegularExpression diff_match_patch::BLANKLINESTART =
+    QRegularExpression("^\\r?\\n\\r?\\n");
 
 void diff_match_patch::diff_cleanupEfficiency(QList<Diff> &diffs) {
   if (diffs.isEmpty()) {
@@ -1394,7 +1396,7 @@ int diff_match_patch::match_main(const QString &text, const QString &pattern,
     throw "Null inputs. (match_main)";
   }
 
-  loc = std::max(0, std::min(loc, text.length()));
+  loc = std::max(0, std::min<int>(loc, text.length()));
   if (text == pattern) {
     // Shortcut (potentially not guaranteed by the algorithm)
     return 0;
@@ -1425,13 +1427,13 @@ int diff_match_patch::match_bitap(const QString &text, const QString &pattern,
   // Is there a nearby exact match? (speedup)
   int best_loc = text.indexOf(pattern, loc);
   if (best_loc != -1) {
-    score_threshold =
-        std::min(match_bitapScore(0, best_loc, loc, pattern), score_threshold);
+    score_threshold = std::min<double>(
+        match_bitapScore(0, best_loc, loc, pattern), score_threshold);
     // What about in the other direction? (speedup)
     best_loc = text.lastIndexOf(pattern, loc + pattern.length());
     if (best_loc != -1) {
-      score_threshold = std::min(match_bitapScore(0, best_loc, loc, pattern),
-                                 score_threshold);
+      score_threshold = std::min<double>(
+          match_bitapScore(0, best_loc, loc, pattern), score_threshold);
     }
   }
 
@@ -1459,8 +1461,9 @@ int diff_match_patch::match_bitap(const QString &text, const QString &pattern,
     }
     // Use the result from this iteration as the maximum for the next.
     bin_max = bin_mid;
-    int start = std::max(1, loc - bin_mid + 1);
-    int finish = std::min(loc + bin_mid, text.length()) + pattern.length();
+    int start = std::max<int>(1, loc - bin_mid + 1);
+    int finish =
+        std::min<double>(loc + bin_mid, text.length()) + pattern.length();
 
     rd = new int[finish + 2];
     rd[finish + 1] = (1 << d) - 1;
@@ -1551,7 +1554,7 @@ void diff_match_patch::patch_addContext(Patch &patch, const QString &text) {
     padding += Patch_Margin;
     pattern = safeMid(
         text, std::max(0, patch.start2 - padding),
-        std::min(text.length(), patch.start2 + patch.length1 + padding) -
+        std::min<int>(text.length(), patch.start2 + patch.length1 + padding) -
             std::max(0, patch.start2 - padding));
   }
   // Add one chunk for good luck.
@@ -1564,10 +1567,10 @@ void diff_match_patch::patch_addContext(Patch &patch, const QString &text) {
     patch.diffs.prepend(Diff(Equal, prefix));
   }
   // Add the suffix.
-  QString suffix =
-      safeMid(text, patch.start2 + patch.length1,
-              std::min(text.length(), patch.start2 + patch.length1 + padding) -
-                  (patch.start2 + patch.length1));
+  QString suffix = safeMid(
+      text, patch.start2 + patch.length1,
+      std::min<int>(text.length(), patch.start2 + patch.length1 + padding) -
+          (patch.start2 + patch.length1));
   if (!suffix.isEmpty()) {
     patch.diffs.append(Diff(Equal, suffix));
   }
@@ -1930,7 +1933,7 @@ void diff_match_patch::patch_splitMax(QList<Patch> &patches) {
           bigpatch.diffs.removeFirst();
         } else {
           // Deletion or equality.  Only take as much as we can stomach.
-          diff_text = diff_text.left(std::min(
+          diff_text = diff_text.left(std::min<int>(
               diff_text.length(), patch_size - patch.length1 - Patch_Margin));
           patch.length1 += diff_text.length();
           start1 += diff_text.length();
