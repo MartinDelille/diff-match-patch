@@ -802,6 +802,7 @@ void diff_match_patch::diff_cleanupSemantic(QList<Diff> &diffs) {
           // Overlap found.  Insert an equality and trim the surrounding edits.
           pointer.previous();
           pointer.insert(Diff(Equal, insertion.left(overlap_length1)));
+          thisDiff = &pointer.next();
           prevDiff->text = deletion.left(deletion.length() - overlap_length1);
           thisDiff->text = safeMid(insertion, overlap_length1);
           // pointer.insert inserts the element before the cursor, so there is
@@ -814,6 +815,7 @@ void diff_match_patch::diff_cleanupSemantic(QList<Diff> &diffs) {
           // Insert an equality and swap and trim the surrounding edits.
           pointer.previous();
           pointer.insert(Diff(Equal, deletion.left(overlap_length2)));
+          thisDiff = &pointer.next();
           prevDiff->operation = Insert;
           prevDiff->text = insertion.left(insertion.length() - overlap_length2);
           thisDiff->operation = Delete;
