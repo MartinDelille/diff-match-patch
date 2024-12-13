@@ -28,9 +28,9 @@
 int main(int argc, char **argv) {
   diff_match_patch_test dmp_test;
   qDebug("Starting diff_match_patch unit tests.");
-  dmp_test.run_all_tests();
+  int result = dmp_test.run_all_tests();
   qDebug("Done.");
-  return 0;
+  return result;
   Q_UNUSED(argc)
   Q_UNUSED(argv)
 }
@@ -39,8 +39,9 @@ int main(int argc, char **argv) {
 diff_match_patch_test::diff_match_patch_test() {
 }
 
-void diff_match_patch_test::run_all_tests() {
+int diff_match_patch_test::run_all_tests() {
   QTime t;
+  int result = 0;
   t.start();
   try {
     testDiffCommonPrefix();
@@ -76,8 +77,10 @@ void diff_match_patch_test::run_all_tests() {
     qDebug("All tests passed.");
   } catch (QString strCase) {
     qDebug("Test failed: %s", qPrintable(strCase));
+    result = -1;
   }
   qDebug("Total time: %d ms", t.elapsed());
+  return result;
 }
 
 //  DIFF TEST FUNCTIONS

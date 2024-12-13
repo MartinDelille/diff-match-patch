@@ -27,7 +27,7 @@
 class diff_match_patch_test {
  public:
   diff_match_patch_test();
-  void run_all_tests();
+  int run_all_tests();
 
   //  DIFF TEST FUNCTIONS
   void testDiffCommonPrefix();
