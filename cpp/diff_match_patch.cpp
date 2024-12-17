@@ -1048,7 +1048,7 @@ void diff_match_patch::diff_cleanupEfficiency(QList<Diff> &diffs) {
             // There is an equality we can fall back to.
             thisDiff = &equalities.top();
           }
-          while (*thisDiff != pointer.previous()) {
+          while (pointer.hasPrevious() && (*thisDiff != pointer.previous())) {
             // Intentionally empty loop.
           }
           post_ins = post_del = false;
