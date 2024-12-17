@@ -1074,7 +1074,6 @@ void diff_match_patch::diff_cleanupMerge(QList<Diff> &diffs) {
   QString text_insert = "";
   Diff *thisDiff = pointer.hasNext() ? &pointer.next() : nullptr;
   Diff *prevEqual = nullptr;
-  int commonlength;
   while (thisDiff != nullptr) {
     switch (thisDiff->operation) {
       case Insert:
@@ -1102,7 +1101,7 @@ void diff_match_patch::diff_cleanupMerge(QList<Diff> &diffs) {
           }
           if (both_types) {
             // Factor out any common prefixies.
-            commonlength = diff_commonPrefix(text_insert, text_delete);
+            int commonlength = diff_commonPrefix(text_insert, text_delete);
             if (commonlength != 0) {
               if (pointer.hasPrevious()) {
                 thisDiff = &pointer.previous();
