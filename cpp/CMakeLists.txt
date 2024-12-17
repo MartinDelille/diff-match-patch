@@ -44,7 +44,7 @@ target_include_directories(${target}
     PRIVATE
         ${QWT_INCLUDE_DIRS}
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>
         $<INSTALL_INTERFACE:include>
 )
 
