@@ -52,6 +52,7 @@ target_include_directories(${target}
 target_link_libraries(${target}
     PUBLIC
         Qt${QT_VERSION_MAJOR}::Core
+        Qt${QT_VERSION_MAJOR}::Test
 )
 
 add_executable(

@@ -22,6 +22,7 @@
 
 // Code known to compile and run with Qt 4.3 through Qt 4.7.
 #include <QtCore>
+#include <QtTest/QtTest>
 
 #include "diff_match_patch.h"
 #include "diff_match_patch_test.h"
@@ -29,156 +30,102 @@
 int main(int argc, char **argv) {
   diff_match_patch_test dmp_test;
   qDebug("Starting diff_match_patch unit tests.");
-  int result = dmp_test.run_all_tests();
+  int result = QTest::qExec(&dmp_test, argc, argv);
   qDebug("Done.");
   return result;
   Q_UNUSED(argc)
   Q_UNUSED(argv)
 }
 
-diff_match_patch_test::diff_match_patch_test() {}
-
-int diff_match_patch_test::run_all_tests() {
-  QElapsedTimer t;
-  int result = 0;
-  t.start();
-  try {
-    testDiffCommonPrefix();
-    testDiffCommonSuffix();
-    testDiffCommonOverlap();
-    testDiffHalfmatch();
-    testDiffLinesToChars();
-    testDiffCharsToLines();
-    testDiffCleanupMerge();
-    testDiffCleanupSemanticLossless();
-    testDiffCleanupSemantic();
-    testDiffCleanupEfficiency();
-    testDiffPrettyHtml();
-    testDiffText();
-    testDiffDelta();
-    testDiffXIndex();
-    testDiffLevenshtein();
-    testDiffBisect();
-    testDiffMain();
-
-    testMatchAlphabet();
-    testMatchBitap();
-    testMatchMain();
-
-    testPatchObj();
-    testPatchFromText();
-    testPatchToText();
-    testPatchAddContext();
-    testPatchMake();
-    testPatchSplitMax();
-    testPatchAddPadding();
-    testPatchApply();
-    qDebug("All tests passed.");
-  } catch (QString strCase) {
-    qDebug("Test failed: %s", qPrintable(strCase));
-    result = -1;
-  }
-  qDebug("Total time: %lld ms", t.elapsed());
-  return result;
-}
-
 //  DIFF TEST FUNCTIONS
 
 void diff_match_patch_test::testDiffCommonPrefix() {
-  // Detect any common prefix.
-  assertEquals("diff_commonPrefix: Null case.", 0,
-               dmp.diff_commonPrefix("abc", "xyz"));
+  // Null case
+  QCOMPARE(dmp.diff_commonPrefix("abc", "xyz"), 0);
 
-  assertEquals("diff_commonPrefix: Non-null case.", 4,
-               dmp.diff_commonPrefix("1234abcdef", "1234xyz"));
+  // Non null case
+  QCOMPARE(dmp.diff_commonPrefix("1234abcdef", "1234xyz"), 4);
 
-  assertEquals("diff_commonPrefix: Whole case.", 4,
-               dmp.diff_commonPrefix("1234", "1234xyz"));
+  // Whole case
+  QCOMPARE(dmp.diff_commonPrefix("1234", "1234xyz"), 4);
 }
 
 void diff_match_patch_test::testDiffCommonSuffix() {
-  // Detect any common suffix.
-  assertEquals("diff_commonSuffix: Null case.", 0,
-               dmp.diff_commonSuffix("abc", "xyz"));
+  // Null case
+  QCOMPARE(dmp.diff_commonSuffix("abc", "xyz"), 0);
 
-  assertEquals("diff_commonSuffix: Non-null case.", 4,
-               dmp.diff_commonSuffix("abcdef1234", "xyz1234"));
+  // Non null case
+  QCOMPARE(dmp.diff_commonSuffix("abcdef1234", "xyz1234"), 4);
 
-  assertEquals("diff_commonSuffix: Whole case.", 4,
-               dmp.diff_commonSuffix("1234", "xyz1234"));
+  // Whole case
+  QCOMPARE(dmp.diff_commonSuffix("1234", "xyz1234"), 4);
 }
 
 void diff_match_patch_test::testDiffCommonOverlap() {
-  // Detect any suffix/prefix overlap.
-  assertEquals("diff_commonOverlap: Null case.", 0,
-               dmp.diff_commonOverlap("", "abcd"));
+  // Null case
+  QCOMPARE(dmp.diff_commonOverlap("", "abcd"), 0);
 
-  assertEquals("diff_commonOverlap: Whole case.", 3,
-               dmp.diff_commonOverlap("abc", "abcd"));
+  // Whole case
+  QCOMPARE(dmp.diff_commonOverlap("abc", "abcd"), 3);
 
-  assertEquals("diff_commonOverlap: No overlap.", 0,
-               dmp.diff_commonOverlap("123456", "abcd"));
+  // No overlap
+  QCOMPARE(dmp.diff_commonOverlap("123456", "abcd"), 0);
 
-  assertEquals("diff_commonOverlap: Overlap.", 3,
-               dmp.diff_commonOverlap("123456xxx", "xxxabcd"));
+  // Overlap
+  QCOMPARE(dmp.diff_commonOverlap("123456xxx", "xxxabcd"), 3);
 
   // Some overly clever languages (C#) may treat ligatures as equal to their
   // component letters.  E.g. U+FB01 == 'fi'
-  assertEquals(
-      "diff_commonOverlap: Unicode.", 0,
-      dmp.diff_commonOverlap(
-          "fi", QString::fromWCharArray((const wchar_t *)L"\ufb01i", 2)));
+  QCOMPARE(dmp.diff_commonOverlap(
+               "fi", QString::fromWCharArray((const wchar_t *)L"\ufb01i", 2)),
+           0);
 }
 
 void diff_match_patch_test::testDiffHalfmatch() {
   // Detect a halfmatch.
   dmp.Diff_Timeout = 1;
-  assertEmpty("diff_halfMatch: No match #1.",
-              dmp.diff_halfMatch("1234567890", "abcdef"));
+  // No match #1
+  QVERIFY(dmp.diff_halfMatch("1234567890", "abcdef").isEmpty());
 
-  assertEmpty("diff_halfMatch: No match #2.",
-              dmp.diff_halfMatch("12345", "23"));
+  // No match #2
+  QVERIFY(dmp.diff_halfMatch("12345", "23").isEmpty());
 
-  assertEquals("diff_halfMatch: Single Match #1.",
-               QString("12,90,a,z,345678").split(","),
-               dmp.diff_halfMatch("1234567890", "a345678z"));
+  // Single Match #1
+  QCOMPARE(dmp.diff_halfMatch("1234567890", "a345678z"),
+           QString("12,90,a,z,345678").split(","));
 
-  assertEquals("diff_halfMatch: Single Match #2.",
-               QString("a,z,12,90,345678").split(","),
-               dmp.diff_halfMatch("a345678z", "1234567890"));
+  // Single Match #2
+  QCOMPARE(dmp.diff_halfMatch("a345678z", "1234567890"),
+           QString("a,z,12,90,345678").split(","));
 
-  assertEquals("diff_halfMatch: Single Match #3.",
-               QString("abc,z,1234,0,56789").split(","),
-               dmp.diff_halfMatch("abc56789z", "1234567890"));
+  // Single Match #3
+  QCOMPARE(dmp.diff_halfMatch("abc56789z", "1234567890"),
+           QString("abc,z,1234,0,56789").split(","));
 
-  assertEquals("diff_halfMatch: Single Match #4.",
-               QString("a,xyz,1,7890,23456").split(","),
-               dmp.diff_halfMatch("a23456xyz", "1234567890"));
+  // Single Match #4
+  QCOMPARE(dmp.diff_halfMatch("a23456xyz", "1234567890"),
+           QString("a,xyz,1,7890,23456").split(","));
 
-  assertEquals(
-      "diff_halfMatch: Multiple Matches #1.",
-      QString("12123,123121,a,z,1234123451234").split(","),
-      dmp.diff_halfMatch("121231234123451234123121", "a1234123451234z"));
+  // Multiple Matches #1
+  QCOMPARE(dmp.diff_halfMatch("121231234123451234123121", "a1234123451234z"),
+           QString("12123,123121,a,z,1234123451234").split(","));
 
-  assertEquals(
-      "diff_halfMatch: Multiple Matches #2.",
-      QString(",-=-=-=-=-=,x,,x-=-=-=-=-=-=-=").split(","),
-      dmp.diff_halfMatch("x-=-=-=-=-=-=-=-=-=-=-=-=", "xx-=-=-=-=-=-=-="));
+  // Multiple Matches #2
+  QCOMPARE(dmp.diff_halfMatch("x-=-=-=-=-=-=-=-=-=-=-=-=", "xx-=-=-=-=-=-=-="),
+           QString(",-=-=-=-=-=,x,,x-=-=-=-=-=-=-=").split(","));
 
-  assertEquals(
-      "diff_halfMatch: Multiple Matches #3.",
-      QString("-=-=-=-=-=,,,y,-=-=-=-=-=-=-=y").split(","),
-      dmp.diff_halfMatch("-=-=-=-=-=-=-=-=-=-=-=-=y", "-=-=-=-=-=-=-=yy"));
+  // Multiple Matches #3
+  QCOMPARE(dmp.diff_halfMatch("-=-=-=-=-=-=-=-=-=-=-=-=y", "-=-=-=-=-=-=-=yy"),
+           QString("-=-=-=-=-=,,,y,-=-=-=-=-=-=-=y").split(","));
 
   // Optimal diff would be -q+x=H-i+e=lloHe+Hu=llo-Hew+y not
   // -qHillo+x=HelloHe-w+Hulloy
-  assertEquals("diff_halfMatch: Non-optimal halfmatch.",
-               QString("qHillo,w,x,Hulloy,HelloHe").split(","),
-               dmp.diff_halfMatch("qHilloHelloHew", "xHelloHeHulloy"));
+  QCOMPARE(dmp.diff_halfMatch("qHilloHelloHew", "xHelloHeHulloy"),
+           QString("qHillo,w,x,Hulloy,HelloHe").split(","));
 
   dmp.Diff_Timeout = 0;
-  assertEmpty("diff_halfMatch: Optimal no halfmatch.",
-              dmp.diff_halfMatch("qHilloHelloHew", "xHelloHeHulloy"));
+  // Optimal no halfmatch
+  QVERIFY(dmp.diff_halfMatch("qHilloHelloHew", "xHelloHeHulloy").isEmpty());
 }
 
 void diff_match_patch_test::testDiffLinesToChars() {
@@ -195,9 +142,8 @@ void diff_match_patch_test::testDiffLinesToChars() {
       QString() + QChar((ushort)2) + QChar((ushort)1) +
       QChar((ushort)2));  // (("\u0002\u0001\u0002"));
   tmpVarList << QVariant::fromValue(tmpVector);
-  assertEquals(
-      "diff_linesToChars:", tmpVarList,
-      dmp.diff_linesToChars("alpha\nbeta\nalpha\n", "beta\nalpha\nbeta\n"));
+  QCOMPARE(dmp.diff_linesToChars("alpha\nbeta\nalpha\n", "beta\nalpha\nbeta\n"),
+           tmpVarList);
 
   tmpVector.clear();
   tmpVarList.clear();
@@ -210,8 +156,7 @@ void diff_match_patch_test::testDiffLinesToChars() {
       QString() + QChar((ushort)1) + QChar((ushort)2) + QChar((ushort)3) +
       QChar((ushort)3));  // (("\u0001\u0002\u0003\u0003"));
   tmpVarList << QVariant::fromValue(tmpVector);
-  assertEquals("diff_linesToChars:", tmpVarList,
-               dmp.diff_linesToChars("", "alpha\r\nbeta\r\n\r\n\r\n"));
+  QCOMPARE(dmp.diff_linesToChars("", "alpha\r\nbeta\r\n\r\n\r\n"), tmpVarList);
 
   tmpVector.clear();
   tmpVarList.clear();
@@ -223,8 +168,7 @@ void diff_match_patch_test::testDiffLinesToChars() {
   tmpVarList << QVariant::fromValue(QString() +
                                     QChar((ushort)2));  // (("\u0002"));
   tmpVarList << QVariant::fromValue(tmpVector);
-  assertEquals("diff_linesToChars:", tmpVarList,
-               dmp.diff_linesToChars("a", "b"));
+  QCOMPARE(dmp.diff_linesToChars("a", "b"), tmpVarList);
 
   // More than 256 to reveal any 8-bit limitations.
   int n = 300;
@@ -237,22 +181,21 @@ void diff_match_patch_test::testDiffLinesToChars() {
     lines += QString::number(x) + "\n";
     chars += QChar(static_cast<ushort>(x));
   }
-  assertEquals("diff_linesToChars: More than 256 (setup).", n,
-               tmpVector.size());
-  assertEquals("diff_linesToChars: More than 256 (setup).", n, chars.length());
+  // More than 256 (setup)
+  QCOMPARE(tmpVector.size(), n);
+  QCOMPARE(chars.length(), n);
   tmpVector.prepend("");
   tmpVarList << QVariant::fromValue(chars);
   tmpVarList << QVariant::fromValue(QString(""));
   tmpVarList << QVariant::fromValue(tmpVector);
-  assertEquals("diff_linesToChars: More than 256.", tmpVarList,
-               dmp.diff_linesToChars(lines, ""));
+  // More than 256
+  QCOMPARE(dmp.diff_linesToChars(lines, ""), tmpVarList);
 }
 
 void diff_match_patch_test::testDiffCharsToLines() {
   // First check that Diff equality works.
-  assertTrue("diff_charsToLines:", Diff(Equal, "a") == Diff(Equal, "a"));
-
-  assertEquals("diff_charsToLines:", Diff(Equal, "a"), Diff(Equal, "a"));
+  QVERIFY(Diff(Equal, "a") == Diff(Equal, "a"));
+  QCOMPARE(Diff(Equal, "a"), Diff(Equal, "a"));
 
   // Convert chars up to lines.
   QList<Diff> diffs;
@@ -265,15 +208,12 @@ void diff_match_patch_test::testDiffCharsToLines() {
   tmpVector.append("alpha\n");
   tmpVector.append("beta\n");
   dmp.diff_charsToLines(diffs, tmpVector);
-  assertEquals("diff_charsToLines:",
-               diffList(Diff(Equal, "alpha\nbeta\nalpha\n"),
-                        Diff(Insert, "beta\nalpha\nbeta\n")),
-               diffs);
+  QCOMPARE(diffs, QList<Diff>() << Diff(Equal, "alpha\nbeta\nalpha\n")
+                                << Diff(Insert, "beta\nalpha\nbeta\n"));
 
   // More than 256 to reveal any 8-bit limitations.
   int n = 300;
   tmpVector.clear();
-  QList<QVariant> tmpVarList;
   QString lines;
   QString chars;
   for (int x = 1; x < n + 1; x++) {
@@ -281,315 +221,338 @@ void diff_match_patch_test::testDiffCharsToLines() {
     lines += QString::number(x) + "\n";
     chars += QChar(static_cast<ushort>(x));
   }
-  assertEquals("diff_linesToChars: More than 256 (setup).", n,
-               tmpVector.size());
-  assertEquals("diff_linesToChars: More than 256 (setup).", n, chars.length());
+  // More than 256 (setup)
+  QCOMPARE(tmpVector.size(), n);
+  QCOMPARE(chars.length(), n);
   tmpVector.prepend("");
-  diffs = diffList(Diff(Delete, chars));
+  diffs = {Diff(Delete, chars)};
   dmp.diff_charsToLines(diffs, tmpVector);
-  assertEquals("diff_charsToLines: More than 256.",
-               diffList(Diff(Delete, lines)), diffs);
+  // More than 256
+  QCOMPARE(diffs, QList<Diff>() << Diff(Delete, lines));
 }
 
 void diff_match_patch_test::testDiffCleanupMerge() {
   // Cleanup a messy diff.
   QList<Diff> diffs;
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Null case.", diffList(), diffs);
+  // Null case
+  QCOMPARE(diffs, QList<Diff>());
 
-  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "b"), Diff(Insert, "c"));
+  diffs = QList<Diff>() << Diff(Equal, "a") << Diff(Delete, "b")
+                        << Diff(Insert, "c");
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: No change case.",
-               diffList(Diff(Equal, "a"), Diff(Delete, "b"), Diff(Insert, "c")),
-               diffs);
+  // No change case
+  QCOMPARE(diffs, QList<Diff>() << Diff(Equal, "a") << Diff(Delete, "b")
+                                << Diff(Insert, "c"));
 
-  diffs = diffList(Diff(Equal, "a"), Diff(Equal, "b"), Diff(Equal, "c"));
+  diffs = QList<Diff>() << Diff(Equal, "a") << Diff(Equal, "b")
+                        << Diff(Equal, "c");
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Merge equalities.",
-               diffList(Diff(Equal, "abc")), diffs);
+  // Merge equalities
+  QCOMPARE(diffs, QList<Diff>() << Diff(Equal, "abc"));
 
-  diffs = diffList(Diff(Delete, "a"), Diff(Delete, "b"), Diff(Delete, "c"));
+  diffs = QList<Diff>() << Diff(Delete, "a") << Diff(Delete, "b")
+                        << Diff(Delete, "c");
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Merge deletions.",
-               diffList(Diff(Delete, "abc")), diffs);
+  // Merge deletions
+  QCOMPARE(diffs, QList<Diff>() << Diff(Delete, "abc"));
 
-  diffs = diffList(Diff(Insert, "a"), Diff(Insert, "b"), Diff(Insert, "c"));
+  diffs = QList<Diff>() << Diff(Insert, "a") << Diff(Insert, "b")
+                        << Diff(Insert, "c");
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Merge insertions.",
-               diffList(Diff(Insert, "abc")), diffs);
+  // Merge insertions
+  QCOMPARE(diffs, QList<Diff>() << Diff(Insert, "abc"));
 
-  diffs = diffList(Diff(Delete, "a"), Diff(Insert, "b"), Diff(Delete, "c"),
-                   Diff(Insert, "d"), Diff(Equal, "e"), Diff(Equal, "f"));
+  diffs = QList<Diff>() << Diff(Delete, "a") << Diff(Insert, "b")
+                        << Diff(Delete, "c") << Diff(Insert, "d")
+                        << Diff(Equal, "e") << Diff(Equal, "f");
   dmp.diff_cleanupMerge(diffs);
-  assertEquals(
-      "diff_cleanupMerge: Merge interweave.",
-      diffList(Diff(Delete, "ac"), Diff(Insert, "bd"), Diff(Equal, "ef")),
-      diffs);
+  // Merge interweave
+  QCOMPARE(diffs, QList<Diff>() << Diff(Delete, "ac") << Diff(Insert, "bd")
+                                << Diff(Equal, "ef"));
 
-  diffs = diffList(Diff(Delete, "a"), Diff(Insert, "abc"), Diff(Delete, "dc"));
+  diffs = QList<Diff>() << Diff(Delete, "a") << Diff(Insert, "abc")
+                        << Diff(Delete, "dc");
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Prefix and suffix detection.",
-               diffList(Diff(Equal, "a"), Diff(Delete, "d"), Diff(Insert, "b"),
-                        Diff(Equal, "c")),
-               diffs);
+  // Prefix and suffix detection.
+  QCOMPARE(diffs, QList<Diff>() << Diff(Equal, "a") << Diff(Delete, "d")
+                                << Diff(Insert, "b") << Diff(Equal, "c"));
 
-  diffs = diffList(Diff(Equal, "x"), Diff(Delete, "a"), Diff(Insert, "abc"),
-                   Diff(Delete, "dc"), Diff(Equal, "y"));
+  diffs = QList<Diff>() << Diff(Equal, "x") << Diff(Delete, "a")
+                        << Diff(Insert, "abc") << Diff(Delete, "dc")
+                        << Diff(Equal, "y");
   dmp.diff_cleanupMerge(diffs);
-  assertEquals(
-      "diff_cleanupMerge: Prefix and suffix detection with equalities.",
-      diffList(Diff(Equal, "xa"), Diff(Delete, "d"), Diff(Insert, "b"),
-               Diff(Equal, "cy")),
-      diffs);
+  // Prefix and suffix detection with equalities.
+  QCOMPARE(diffs, QList<Diff>() << Diff(Equal, "xa") << Diff(Delete, "d")
+                                << Diff(Insert, "b") << Diff(Equal, "cy"));
 
-  diffs = diffList(Diff(Equal, "a"), Diff(Insert, "ba"), Diff(Equal, "c"));
+  diffs = QList<Diff>() << Diff(Equal, "a") << Diff(Insert, "ba")
+                        << Diff(Equal, "c");
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Slide edit left.",
-               diffList(Diff(Insert, "ab"), Diff(Equal, "ac")), diffs);
+  // Slide edit left
+  QCOMPARE(diffs, QList<Diff>() << Diff(Insert, "ab") << Diff(Equal, "ac"));
 
-  diffs = diffList(Diff(Equal, "c"), Diff(Insert, "ab"), Diff(Equal, "a"));
+  diffs = QList<Diff>() << Diff(Equal, "c") << Diff(Insert, "ab")
+                        << Diff(Equal, "a");
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Slide edit right.",
-               diffList(Diff(Equal, "ca"), Diff(Insert, "ba")), diffs);
+  // Slide edit right
+  QCOMPARE(diffs, QList<Diff>() << Diff(Equal, "ca") << Diff(Insert, "ba"));
 
-  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "b"), Diff(Equal, "c"),
-                   Diff(Delete, "ac"), Diff(Equal, "x"));
+  diffs = QList<Diff>() << Diff(Equal, "a") << Diff(Delete, "b")
+                        << Diff(Equal, "c") << Diff(Delete, "ac")
+                        << Diff(Equal, "x");
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Slide edit left recursive.",
-               diffList(Diff(Delete, "abc"), Diff(Equal, "acx")), diffs);
+  // Slide edit left recursive
+  QCOMPARE(diffs, QList<Diff>() << Diff(Delete, "abc") << Diff(Equal, "acx"));
 
-  diffs = diffList(Diff(Equal, "x"), Diff(Delete, "ca"), Diff(Equal, "c"),
-                   Diff(Delete, "b"), Diff(Equal, "a"));
+  diffs = QList<Diff>() << Diff(Equal, "x") << Diff(Delete, "ca")
+                        << Diff(Equal, "c") << Diff(Delete, "b")
+                        << Diff(Equal, "a");
   dmp.diff_cleanupMerge(diffs);
-  assertEquals("diff_cleanupMerge: Slide edit right recursive.",
-               diffList(Diff(Equal, "xca"), Diff(Delete, "cba")), diffs);
+  // Slide edit right recursive
+  QCOMPARE(diffs, QList<Diff>() << Diff(Equal, "xca") << Diff(Delete, "cba"));
 }
 
 void diff_match_patch_test::testDiffCleanupSemanticLossless() {
   // Slide diffs to match logical boundaries.
-  QList<Diff> diffs = diffList();
+  QList<Diff> diffs = QList<Diff>();
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemantic: Null case.", diffList(), diffs);
+  // Null case
+  QCOMPARE(diffs, QList<Diff>());
 
-  diffs = diffList(Diff(Equal, "AAA\r\n\r\nBBB"),
-                   Diff(Insert, "\r\nDDD\r\n\r\nBBB"), Diff(Equal, "\r\nEEE"));
+  diffs = QList<Diff>() << Diff(Equal, "AAA\r\n\r\nBBB")
+                        << Diff(Insert, "\r\nDDD\r\n\r\nBBB")
+                        << Diff(Equal, "\r\nEEE");
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals(
-      "diff_cleanupSemanticLossless: Blank lines.",
-      diffList(Diff(Equal, "AAA\r\n\r\n"), Diff(Insert, "BBB\r\nDDD\r\n\r\n"),
-               Diff(Equal, "BBB\r\nEEE")),
-      diffs);
+  // Blank lines
+  QCOMPARE(diffs, QList<Diff>() << Diff(Equal, "AAA\r\n\r\n")
+                                << Diff(Insert, "BBB\r\nDDD\r\n\r\n")
+                                << Diff(Equal, "BBB\r\nEEE"));
 
-  diffs = diffList(Diff(Equal, "AAA\r\nBBB"), Diff(Insert, " DDD\r\nBBB"),
-                   Diff(Equal, " EEE"));
+  diffs = QList<Diff>() << Diff(Equal, "AAA\r\nBBB")
+                        << Diff(Insert, " DDD\r\nBBB") << Diff(Equal, " EEE");
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemanticLossless: Line boundaries.",
-               diffList(Diff(Equal, "AAA\r\n"), Diff(Insert, "BBB DDD\r\n"),
-                        Diff(Equal, "BBB EEE")),
-               diffs);
+  // Line boundaries
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Equal, "AAA\r\n") << Diff(Insert, "BBB DDD\r\n")
+                      << Diff(Equal, "BBB EEE"));
 
-  diffs = diffList(Diff(Equal, "The c"), Diff(Insert, "ow and the c"),
-                   Diff(Equal, "at."));
+  diffs = QList<Diff>() << Diff(Equal, "The c") << Diff(Insert, "ow and the c")
+                        << Diff(Equal, "at.");
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemantic: Word boundaries.",
-               diffList(Diff(Equal, "The "), Diff(Insert, "cow and the "),
-                        Diff(Equal, "cat.")),
-               diffs);
+  // Word boundaries
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Equal, "The ") << Diff(Insert, "cow and the ")
+                      << Diff(Equal, "cat."));
 
-  diffs = diffList(Diff(Equal, "The-c"), Diff(Insert, "ow-and-the-c"),
-                   Diff(Equal, "at."));
+  diffs = QList<Diff>() << Diff(Equal, "The-c") << Diff(Insert, "ow-and-the-c")
+                        << Diff(Equal, "at.");
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemantic: Alphanumeric boundaries.",
-               diffList(Diff(Equal, "The-"), Diff(Insert, "cow-and-the-"),
-                        Diff(Equal, "cat.")),
-               diffs);
+  // Alphanumeric boundaries
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Equal, "The-") << Diff(Insert, "cow-and-the-")
+                      << Diff(Equal, "cat."));
 
-  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "a"), Diff(Equal, "ax"));
+  diffs = QList<Diff>() << Diff(Equal, "a") << Diff(Delete, "a")
+                        << Diff(Equal, "ax");
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemantic: Hitting the start.",
-               diffList(Diff(Delete, "a"), Diff(Equal, "aax")), diffs);
+  // Hitting the start.
+  QCOMPARE(diffs, QList<Diff>() << Diff(Delete, "a") << Diff(Equal, "aax"));
 
-  diffs = diffList(Diff(Equal, "xa"), Diff(Delete, "a"), Diff(Equal, "a"));
+  diffs = QList<Diff>() << Diff(Equal, "xa") << Diff(Delete, "a")
+                        << Diff(Equal, "a");
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemantic: Hitting the end.",
-               diffList(Diff(Equal, "xaa"), Diff(Delete, "a")), diffs);
+  // Hitting the end.
+  QCOMPARE(diffs, QList<Diff>() << Diff(Equal, "xaa") << Diff(Delete, "a"));
 
-  diffs = diffList(Diff(Equal, "The xxx. The "), Diff(Insert, "zzz. The "),
-                   Diff(Equal, "yyy."));
+  diffs = QList<Diff>() << Diff(Equal, "The xxx. The ")
+                        << Diff(Insert, "zzz. The ") << Diff(Equal, "yyy.");
   dmp.diff_cleanupSemanticLossless(diffs);
-  assertEquals("diff_cleanupSemantic: Sentence boundaries.",
-               diffList(Diff(Equal, "The xxx."), Diff(Insert, " The zzz."),
-                        Diff(Equal, " The yyy.")),
-               diffs);
+  // Sentence boundaries.
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Equal, "The xxx.") << Diff(Insert, " The zzz.")
+                      << Diff(Equal, " The yyy."));
 }
 
 void diff_match_patch_test::testDiffCleanupSemantic() {
   // Cleanup semantically trivial equalities.
-  QList<Diff> diffs = diffList();
+  QList<Diff> diffs = QList<Diff>();
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Null case.", diffList(), diffs);
+  // Null case
+  QCOMPARE(diffs, QList<Diff>());
 
-  diffs = diffList(Diff(Delete, "ab"), Diff(Insert, "cd"), Diff(Equal, "12"),
-                   Diff(Delete, "e"));
+  diffs = QList<Diff>() << Diff(Delete, "ab") << Diff(Insert, "cd")
+                        << Diff(Equal, "12") << Diff(Delete, "e");
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: No elimination #1.",
-               diffList(Diff(Delete, "ab"), Diff(Insert, "cd"),
-                        Diff(Equal, "12"), Diff(Delete, "e")),
-               diffs);
+  // No elimination #1
+  QCOMPARE(diffs, QList<Diff>() << Diff(Delete, "ab") << Diff(Insert, "cd")
+                                << Diff(Equal, "12") << Diff(Delete, "e"));
 
-  diffs = diffList(Diff(Delete, "abc"), Diff(Insert, "ABC"),
-                   Diff(Equal, "1234"), Diff(Delete, "wxyz"));
+  diffs = QList<Diff>() << Diff(Delete, "abc") << Diff(Insert, "ABC")
+                        << Diff(Equal, "1234") << Diff(Delete, "wxyz");
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: No elimination #2.",
-               diffList(Diff(Delete, "abc"), Diff(Insert, "ABC"),
-                        Diff(Equal, "1234"), Diff(Delete, "wxyz")),
-               diffs);
+  // No elimination #2
+  QCOMPARE(diffs, QList<Diff>() << Diff(Delete, "abc") << Diff(Insert, "ABC")
+                                << Diff(Equal, "1234") << Diff(Delete, "wxyz"));
 
-  diffs = diffList(Diff(Delete, "a"), Diff(Equal, "b"), Diff(Delete, "c"));
+  diffs = QList<Diff>() << Diff(Delete, "a") << Diff(Equal, "b")
+                        << Diff(Delete, "c");
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Simple elimination.",
-               diffList(Diff(Delete, "abc"), Diff(Insert, "b")), diffs);
+  // Simple elimination
+  QCOMPARE(diffs, QList<Diff>() << Diff(Delete, "abc") << Diff(Insert, "b"));
 
-  diffs = diffList(Diff(Delete, "ab"), Diff(Equal, "cd"), Diff(Delete, "e"),
-                   Diff(Equal, "f"), Diff(Insert, "g"));
+  diffs = QList<Diff>() << Diff(Delete, "ab") << Diff(Equal, "cd")
+                        << Diff(Delete, "e") << Diff(Equal, "f")
+                        << Diff(Insert, "g");
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Backpass elimination.",
-               diffList(Diff(Delete, "abcdef"), Diff(Insert, "cdfg")), diffs);
+  // Backpass elimination
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Delete, "abcdef") << Diff(Insert, "cdfg"));
 
-  diffs = diffList(Diff(Insert, "1"), Diff(Equal, "A"), Diff(Delete, "B"),
-                   Diff(Insert, "2"), Diff(Equal, "_"), Diff(Insert, "1"),
-                   Diff(Equal, "A"), Diff(Delete, "B"), Diff(Insert, "2"));
+  diffs = QList<Diff>() << Diff(Insert, "1") << Diff(Equal, "A")
+                        << Diff(Delete, "B") << Diff(Insert, "2")
+                        << Diff(Equal, "_") << Diff(Insert, "1")
+                        << Diff(Equal, "A") << Diff(Delete, "B")
+                        << Diff(Insert, "2");
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Multiple elimination.",
-               diffList(Diff(Delete, "AB_AB"), Diff(Insert, "1A2_1A2")), diffs);
+  // Multiple eliminations
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Delete, "AB_AB") << Diff(Insert, "1A2_1A2"));
 
-  diffs = diffList(Diff(Equal, "The c"), Diff(Delete, "ow and the c"),
-                   Diff(Equal, "at."));
+  diffs = QList<Diff>() << Diff(Equal, "The c") << Diff(Delete, "ow and the c")
+                        << Diff(Equal, "at.");
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: Word boundaries.",
-               diffList(Diff(Equal, "The "), Diff(Delete, "cow and the "),
-                        Diff(Equal, "cat.")),
-               diffs);
+  // Word boundaries
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Equal, "The ") << Diff(Delete, "cow and the ")
+                      << Diff(Equal, "cat."));
 
-  diffs = diffList(Diff(Delete, "abcxx"), Diff(Insert, "xxdef"));
+  diffs = QList<Diff>() << Diff(Delete, "abcxx") << Diff(Insert, "xxdef");
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals("diff_cleanupSemantic: No overlap elimination.",
-               diffList(Diff(Delete, "abcxx"), Diff(Insert, "xxdef")), diffs);
+  // No overlap elimination
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Delete, "abcxx") << Diff(Insert, "xxdef"));
 
-  diffs = diffList(Diff(Delete, "abcxxx"), Diff(Insert, "xxxdef"));
+  diffs = QList<Diff>() << Diff(Delete, "abcxxx") << Diff(Insert, "xxxdef");
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals(
-      "diff_cleanupSemantic: Overlap elimination.",
-      diffList(Diff(Delete, "abc"), Diff(Equal, "xxx"), Diff(Insert, "def")),
-      diffs);
+  // Overlap elimination
+  QCOMPARE(diffs, QList<Diff>() << Diff(Delete, "abc") << Diff(Equal, "xxx")
+                                << Diff(Insert, "def"));
 
-  diffs = diffList(Diff(Delete, "xxxabc"), Diff(Insert, "defxxx"));
+  diffs = QList<Diff>() << Diff(Delete, "xxxabc") << Diff(Insert, "defxxx");
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals(
-      "diff_cleanupSemantic: Reverse overlap elimination.",
-      diffList(Diff(Insert, "def"), Diff(Equal, "xxx"), Diff(Delete, "abc")),
-      diffs);
+  // Reverse overlap elimination
+  QCOMPARE(diffs, QList<Diff>() << Diff(Insert, "def") << Diff(Equal, "xxx")
+                                << Diff(Delete, "abc"));
 
-  diffs =
-      diffList(Diff(Delete, "abcd1212"), Diff(Insert, "1212efghi"),
-               Diff(Equal, "----"), Diff(Delete, "A3"), Diff(Insert, "3BC"));
+  diffs = QList<Diff>() << Diff(Delete, "abcd1212") << Diff(Insert, "1212efghi")
+                        << Diff(Equal, "----") << Diff(Delete, "A3")
+                        << Diff(Insert, "3BC");
   dmp.diff_cleanupSemantic(diffs);
-  assertEquals(
-      "diff_cleanupSemantic: Two overlap eliminations.",
-      diffList(Diff(Delete, "abcd"), Diff(Equal, "1212"), Diff(Insert, "efghi"),
-               Diff(Equal, "----"), Diff(Delete, "A"), Diff(Equal, "3"),
-               Diff(Insert, "BC")),
-      diffs);
+  // Two overlap eliminations
+  QCOMPARE(diffs, QList<Diff>() << Diff(Delete, "abcd") << Diff(Equal, "1212")
+                                << Diff(Insert, "efghi") << Diff(Equal, "----")
+                                << Diff(Delete, "A") << Diff(Equal, "3")
+                                << Diff(Insert, "BC"));
 }
 
 void diff_match_patch_test::testDiffCleanupEfficiency() {
   // Cleanup operationally trivial equalities.
   dmp.Diff_EditCost = 4;
-  QList<Diff> diffs = diffList();
+  QList<Diff> diffs = QList<Diff>();
   dmp.diff_cleanupEfficiency(diffs);
-  assertEquals("diff_cleanupEfficiency: Null case.", diffList(), diffs);
+  // Null case
+  QCOMPARE(diffs, QList<Diff>());
 
-  diffs = diffList(Diff(Delete, "ab"), Diff(Insert, "12"), Diff(Equal, "wxyz"),
-                   Diff(Delete, "cd"), Diff(Insert, "34"));
+  diffs = QList<Diff>() << Diff(Delete, "ab") << Diff(Insert, "12")
+                        << Diff(Equal, "wxyz") << Diff(Delete, "cd")
+                        << Diff(Insert, "34");
   dmp.diff_cleanupEfficiency(diffs);
-  assertEquals(
-      "diff_cleanupEfficiency: No elimination.",
-      diffList(Diff(Delete, "ab"), Diff(Insert, "12"), Diff(Equal, "wxyz"),
-               Diff(Delete, "cd"), Diff(Insert, "34")),
-      diffs);
+  // No elimination
+  QCOMPARE(diffs, QList<Diff>() << Diff(Delete, "ab") << Diff(Insert, "12")
+                                << Diff(Equal, "wxyz") << Diff(Delete, "cd")
+                                << Diff(Insert, "34"));
 
-  diffs = diffList(Diff(Delete, "ab"), Diff(Insert, "12"), Diff(Equal, "xyz"),
-                   Diff(Delete, "cd"), Diff(Insert, "34"));
+  diffs = QList<Diff>() << Diff(Delete, "ab") << Diff(Insert, "12")
+                        << Diff(Equal, "xyz") << Diff(Delete, "cd")
+                        << Diff(Insert, "34");
   dmp.diff_cleanupEfficiency(diffs);
-  assertEquals("diff_cleanupEfficiency: Four-edit elimination.",
-               diffList(Diff(Delete, "abxyzcd"), Diff(Insert, "12xyz34")),
-               diffs);
+  // Four-edit elimination
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Delete, "abxyzcd") << Diff(Insert, "12xyz34"));
 
-  diffs = diffList(Diff(Insert, "12"), Diff(Equal, "x"), Diff(Delete, "cd"),
-                   Diff(Insert, "34"));
+  diffs = QList<Diff>() << Diff(Insert, "12") << Diff(Equal, "x")
+                        << Diff(Delete, "cd") << Diff(Insert, "34");
   dmp.diff_cleanupEfficiency(diffs);
-  assertEquals("diff_cleanupEfficiency: Three-edit elimination.",
-               diffList(Diff(Delete, "xcd"), Diff(Insert, "12x34")), diffs);
+  // Three-edit elimination
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Delete, "xcd") << Diff(Insert, "12x34"));
 
-  diffs = diffList(Diff(Delete, "ab"), Diff(Insert, "12"), Diff(Equal, "xy"),
-                   Diff(Insert, "34"), Diff(Equal, "z"), Diff(Delete, "cd"),
-                   Diff(Insert, "56"));
+  diffs = QList<Diff>() << Diff(Delete, "ab") << Diff(Insert, "12")
+                        << Diff(Equal, "xy") << Diff(Insert, "34")
+                        << Diff(Equal, "z") << Diff(Delete, "cd")
+                        << Diff(Insert, "56");
   dmp.diff_cleanupEfficiency(diffs);
-  assertEquals("diff_cleanupEfficiency: Backpass elimination.",
-               diffList(Diff(Delete, "abxyzcd"), Diff(Insert, "12xy34z56")),
-               diffs);
+  // Backpass elimination
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Delete, "abxyzcd") << Diff(Insert, "12xy34z56"));
 
   dmp.Diff_EditCost = 5;
-  diffs = diffList(Diff(Delete, "ab"), Diff(Insert, "12"), Diff(Equal, "wxyz"),
-                   Diff(Delete, "cd"), Diff(Insert, "34"));
+  diffs = QList<Diff>() << Diff(Delete, "ab") << Diff(Insert, "12")
+                        << Diff(Equal, "wxyz") << Diff(Delete, "cd")
+                        << Diff(Insert, "34");
   dmp.diff_cleanupEfficiency(diffs);
-  assertEquals("diff_cleanupEfficiency: High cost elimination.",
-               diffList(Diff(Delete, "abwxyzcd"), Diff(Insert, "12wxyz34")),
-               diffs);
+  // High cost elimination
+  QCOMPARE(diffs, QList<Diff>()
+                      << Diff(Delete, "abwxyzcd") << Diff(Insert, "12wxyz34"));
   dmp.Diff_EditCost = 4;
 }
 
 void diff_match_patch_test::testDiffPrettyHtml() {
   // Pretty print.
-  QList<Diff> diffs = diffList(Diff(Equal, "a\n"), Diff(Delete, "<B>b</B>"),
-                               Diff(Insert, "c&d"));
-  assertEquals("diff_prettyHtml:",
-               "<span>a&para;<br></span><del "
-               "style=\"background:#ffe6e6;\">&lt;B&gt;b&lt;/B&gt;</del><ins "
-               "style=\"background:#e6ffe6;\">c&amp;d</ins>",
-               dmp.diff_prettyHtml(diffs));
+  QList<Diff> diffs = QList<Diff>()
+                      << Diff(Equal, "a\n") << Diff(Delete, "<B>b</B>")
+                      << Diff(Insert, "c&d");
+  QString expectedHtml =
+      "<span>a&para;<br></span><del "
+      "style=\"background:#ffe6e6;\">&lt;B&gt;b&lt;/B&gt;</del><ins "
+      "style=\"background:#e6ffe6;\">c&amp;d</ins>";
+  QCOMPARE(dmp.diff_prettyHtml(diffs), expectedHtml);
 }
 
 void diff_match_patch_test::testDiffText() {
   // Compute the source and destination texts.
-  QList<Diff> diffs =
-      diffList(Diff(Equal, "jump"), Diff(Delete, "s"), Diff(Insert, "ed"),
-               Diff(Equal, " over "), Diff(Delete, "the"), Diff(Insert, "a"),
-               Diff(Equal, " lazy"));
-  assertEquals("diff_text1:", "jumps over the lazy", dmp.diff_text1(diffs));
-  assertEquals("diff_text2:", "jumped over a lazy", dmp.diff_text2(diffs));
+  QList<Diff> diffs = QList<Diff>()
+                      << Diff(Equal, "jump") << Diff(Delete, "s")
+                      << Diff(Insert, "ed") << Diff(Equal, " over ")
+                      << Diff(Delete, "the") << Diff(Insert, "a")
+                      << Diff(Equal, " lazy");
+
+  QCOMPARE(dmp.diff_text1(diffs), QString("jumps over the lazy"));
+  QCOMPARE(dmp.diff_text2(diffs), QString("jumped over a lazy"));
 }
 
 void diff_match_patch_test::testDiffDelta() {
   // Convert a diff into delta string.
-  QList<Diff> diffs =
-      diffList(Diff(Equal, "jump"), Diff(Delete, "s"), Diff(Insert, "ed"),
-               Diff(Equal, " over "), Diff(Delete, "the"), Diff(Insert, "a"),
-               Diff(Equal, " lazy"), Diff(Insert, "old dog"));
+  QList<Diff> diffs = QList<Diff>()
+                      << Diff(Equal, "jump") << Diff(Delete, "s")
+                      << Diff(Insert, "ed") << Diff(Equal, " over ")
+                      << Diff(Delete, "the") << Diff(Insert, "a")
+                      << Diff(Equal, " lazy") << Diff(Insert, "old dog");
   QString text1 = dmp.diff_text1(diffs);
-  assertEquals("diff_text1: Base text.", "jumps over the lazy", text1);
+  // Base text.
+  QCOMPARE(text1, QString("jumps over the lazy"));
 
   QString delta = dmp.diff_toDelta(diffs);
-  assertEquals("diff_toDelta:", "=4\t-1\t+ed\t=6\t-3\t+a\t=5\t+old dog", delta);
+  QCOMPARE(delta, QString("=4\t-1\t+ed\t=6\t-3\t+a\t=5\t+old dog"));
 
   // Convert delta string into a diff.
-  assertEquals("diff_fromDelta: Normal.", diffs,
-               dmp.diff_fromDelta(text1, delta));
+  QCOMPARE(dmp.diff_fromDelta(text1, delta), diffs);
 
   // Generates error (19 < 20).
   try {
     dmp.diff_fromDelta(text1 + "x", delta);
-    assertFalse("diff_fromDelta: Too long.", true);
+    QFAIL("diff_fromDelta: Too long.");
   } catch (QString ex) {
     // Exception expected.
   }
@@ -597,84 +560,75 @@ void diff_match_patch_test::testDiffDelta() {
   // Generates error (19 > 18).
   try {
     dmp.diff_fromDelta(text1.mid(1), delta);
-    assertFalse("diff_fromDelta: Too short.", true);
+    QFAIL("diff_fromDelta: Too short.");
   } catch (QString ex) {
     // Exception expected.
   }
-
-  // Generates error (%c3%xy invalid Unicode).
-  /* This test does not work because QUrl::fromPercentEncoding("%xy") -> "?"
-  try {
-    dmp.diff_fromDelta("", "+%c3%xy");
-    assertFalse("diff_fromDelta: Invalid character.", true);
-  } catch (QString ex) {
-    // Exception expected.
-  }
-  */
 
   // Test deltas with special characters.
-  diffs = diffList(
-      Diff(Equal,
-           QString::fromWCharArray((const wchar_t *)L"\u0680 \000 \t %", 7)),
-      Diff(Delete,
-           QString::fromWCharArray((const wchar_t *)L"\u0681 \001 \n ^", 7)),
-      Diff(Insert,
-           QString::fromWCharArray((const wchar_t *)L"\u0682 \002 \\ |", 7)));
+  diffs =
+      QList<Diff>()
+      << Diff(Equal,
+              QString::fromWCharArray((const wchar_t *)L"\u0680 \000 \t %", 7))
+      << Diff(Delete,
+              QString::fromWCharArray((const wchar_t *)L"\u0681 \001 \n ^", 7))
+      << Diff(Insert,
+              QString::fromWCharArray((const wchar_t *)L"\u0682 \002 \\ |", 7));
   text1 = dmp.diff_text1(diffs);
-  assertEquals("diff_text1: Unicode text.",
-               QString::fromWCharArray(
-                   (const wchar_t *)L"\u0680 \000 \t %\u0681 \001 \n ^", 14),
-               text1);
+  // Unicode text.
+  QCOMPARE(text1,
+           QString::fromWCharArray(
+               (const wchar_t *)L"\u0680 \000 \t %\u0681 \001 \n ^", 14));
 
   delta = dmp.diff_toDelta(diffs);
-  assertEquals("diff_toDelta: Unicode.", "=7\t-7\t+%DA%82 %02 %5C %7C", delta);
+  // Unicode delta.
+  QCOMPARE(delta, QString("=7\t-7\t+%DA%82 %02 %5C %7C"));
 
-  assertEquals("diff_fromDelta: Unicode.", diffs,
-               dmp.diff_fromDelta(text1, delta));
+  // Unicode.
+  QCOMPARE(dmp.diff_fromDelta(text1, delta), diffs);
 
   // Verify pool of unchanged characters.
-  diffs = diffList(
-      Diff(Insert, "A-Z a-z 0-9 - _ . ! ~ * ' ( ) ; / ? : @ & = + $ , # "));
+  diffs = QList<Diff>() << Diff(
+              Insert, "A-Z a-z 0-9 - _ . ! ~ * ' ( ) ; / ? : @ & = + $ , # ");
   QString text2 = dmp.diff_text2(diffs);
-  assertEquals("diff_text2: Unchanged characters.",
-               "A-Z a-z 0-9 - _ . ! ~ * \' ( ) ; / ? : @ & = + $ , # ", text2);
+  // Unchanged characters.
+  QCOMPARE(text2,
+           QString("A-Z a-z 0-9 - _ . ! ~ * ' ( ) ; / ? : @ & = + $ , # "));
 
   delta = dmp.diff_toDelta(diffs);
-  assertEquals("diff_toDelta: Unchanged characters.",
-               "+A-Z a-z 0-9 - _ . ! ~ * \' ( ) ; / ? : @ & = + $ , # ", delta);
+  // Unchanged characters
+  QCOMPARE(delta,
+           QString("+A-Z a-z 0-9 - _ . ! ~ * ' ( ) ; / ? : @ & = + $ , # "));
 
   // Convert delta string into a diff.
-  assertEquals("diff_fromDelta: Unchanged characters.", diffs,
-               dmp.diff_fromDelta("", delta));
+  QCOMPARE(dmp.diff_fromDelta("", delta), diffs);
 }
 
 void diff_match_patch_test::testDiffXIndex() {
   // Translate a location in text1 to text2.
-  QList<Diff> diffs =
-      diffList(Diff(Delete, "a"), Diff(Insert, "1234"), Diff(Equal, "xyz"));
-  assertEquals("diff_xIndex: Translation on equality.", 5,
-               dmp.diff_xIndex(diffs, 2));
+  QList<Diff> diffs = {Diff(Delete, "a"), Diff(Insert, "1234"),
+                       Diff(Equal, "xyz")};
+  // Translation on equality.
+  QCOMPARE(dmp.diff_xIndex(diffs, 2), 5);
 
-  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "1234"), Diff(Equal, "xyz"));
-  assertEquals("diff_xIndex: Translation on deletion.", 1,
-               dmp.diff_xIndex(diffs, 3));
+  diffs = {Diff(Equal, "a"), Diff(Delete, "1234"), Diff(Equal, "xyz")};
+  // Translation on deletion.
+  QCOMPARE(dmp.diff_xIndex(diffs, 3), 1);
 }
 
 void diff_match_patch_test::testDiffLevenshtein() {
-  QList<Diff> diffs =
-      diffList(Diff(Delete, "abc"), Diff(Insert, "1234"), Diff(Equal, "xyz"));
-  assertEquals("diff_levenshtein: Trailing equality.", 4,
-               dmp.diff_levenshtein(diffs));
+  QList<Diff> diffs = {Diff(Delete, "abc"), Diff(Insert, "1234"),
+                       Diff(Equal, "xyz")};
+  // Trailling equality.
+  QCOMPARE(dmp.diff_levenshtein(diffs), 4);
 
-  diffs =
-      diffList(Diff(Equal, "xyz"), Diff(Delete, "abc"), Diff(Insert, "1234"));
-  assertEquals("diff_levenshtein: Leading equality.", 4,
-               dmp.diff_levenshtein(diffs));
+  diffs = {Diff(Equal, "xyz"), Diff(Delete, "abc"), Diff(Insert, "1234")};
+  // Leading equality.
+  QCOMPARE(dmp.diff_levenshtein(diffs), 4);
 
-  diffs =
-      diffList(Diff(Delete, "abc"), Diff(Equal, "xyz"), Diff(Insert, "1234"));
-  assertEquals("diff_levenshtein: Middle equality.", 7,
-               dmp.diff_levenshtein(diffs));
+  diffs = {Diff(Delete, "abc"), Diff(Equal, "xyz"), Diff(Insert, "1234")};
+  // Middle equality.
+  QCOMPARE(dmp.diff_levenshtein(diffs), 7);
 }
 
 void diff_match_patch_test::testDiffBisect() {

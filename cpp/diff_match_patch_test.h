@@ -23,11 +23,14 @@
 #ifndef DIFF_MATCH_PATCH_TEST_H
 #define DIFF_MATCH_PATCH_TEST_H
 
-class diff_match_patch_test {
- public:
-  diff_match_patch_test();
-  int run_all_tests();
+#include <QObject>
 
+#include "diff_match_patch.h"
+
+class diff_match_patch_test : public QObject {
+  Q_OBJECT
+
+ private slots:
   //  DIFF TEST FUNCTIONS
   void testDiffCommonPrefix();
   void testDiffCommonSuffix();
