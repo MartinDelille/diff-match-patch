@@ -638,43 +638,43 @@ void diff_match_patch_test::testDiffBisect() {
   // Since the resulting diff hasn't been normalized, it would be ok if
   // the insertion and deletion pairs are swapped.
   // If the order changes, tweak this test as required.
-  QList<Diff> diffs =
-      diffList(Diff(Delete, "c"), Diff(Insert, "m"), Diff(Equal, "a"),
-               Diff(Delete, "t"), Diff(Insert, "p"));
-  assertEquals("diff_bisect: Normal.", diffs,
-               dmp.diff_bisect(a, b, std::numeric_limits<clock_t>::max()));
+  QList<Diff> diffs = {Diff(Delete, "c"), Diff(Insert, "m"), Diff(Equal, "a"),
+                       Diff(Delete, "t"), Diff(Insert, "p")};
+  // Normal.
+  QCOMPARE(dmp.diff_bisect(a, b, std::numeric_limits<clock_t>::max()), diffs);
 
   // Timeout.
-  diffs = diffList(Diff(Delete, "cat"), Diff(Insert, "map"));
-  assertEquals("diff_bisect: Timeout.", diffs, dmp.diff_bisect(a, b, 0));
+  diffs = {Diff(Delete, "cat"), Diff(Insert, "map")};
+  QCOMPARE(dmp.diff_bisect(a, b, 0), diffs);
 }
 
 void diff_match_patch_test::testDiffMain() {
   // Perform a trivial diff.
-  QList<Diff> diffs = diffList();
-  assertEquals("diff_main: Null case.", diffs, dmp.diff_main("", "", false));
+  QList<Diff> diffs;
+  // Null case.
+  QCOMPARE(dmp.diff_main("", "", false), diffs);
 
-  diffs = diffList(Diff(Equal, "abc"));
-  assertEquals("diff_main: Equality.", diffs,
-               dmp.diff_main("abc", "abc", false));
+  diffs = {Diff(Equal, "abc")};
+  // Equality.
+  QCOMPARE(dmp.diff_main("abc", "abc", false), diffs);
 
-  diffs = diffList(Diff(Equal, "ab"), Diff(Insert, "123"), Diff(Equal, "c"));
-  assertEquals("diff_main: Simple insertion.", diffs,
-               dmp.diff_main("abc", "ab123c", false));
+  diffs = {Diff(Equal, "ab"), Diff(Insert, "123"), Diff(Equal, "c")};
+  // Simple insertion.
+  QCOMPARE(dmp.diff_main("abc", "ab123c", false), diffs);
 
-  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "123"), Diff(Equal, "bc"));
-  assertEquals("diff_main: Simple deletion.", diffs,
-               dmp.diff_main("a123bc", "abc", false));
+  diffs = {Diff(Equal, "a"), Diff(Delete, "123"), Diff(Equal, "bc")};
+  // Simple deletion.
+  QCOMPARE(dmp.diff_main("a123bc", "abc", false), diffs);
 
-  diffs = diffList(Diff(Equal, "a"), Diff(Insert, "123"), Diff(Equal, "b"),
-                   Diff(Insert, "456"), Diff(Equal, "c"));
-  assertEquals("diff_main: Two insertions.", diffs,
-               dmp.diff_main("abc", "a123b456c", false));
+  diffs = {Diff(Equal, "a"), Diff(Insert, "123"), Diff(Equal, "b"),
+           Diff(Insert, "456"), Diff(Equal, "c")};
+  // Two insertions.
+  QCOMPARE(dmp.diff_main("abc", "a123b456c", false), diffs);
 
-  diffs = diffList(Diff(Equal, "a"), Diff(Delete, "123"), Diff(Equal, "b"),
-                   Diff(Delete, "456"), Diff(Equal, "c"));
-  assertEquals("diff_main: Two deletions.", diffs,
-               dmp.diff_main("a123b456c", "abc", false));
+  diffs = {Diff(Equal, "a"), Diff(Delete, "123"), Diff(Equal, "b"),
+           Diff(Delete, "456"), Diff(Equal, "c")};
+  // Two deletions.
+  QCOMPARE(dmp.diff_main("a123b456c", "abc", false), diffs);
 
   // Perform a real diff.
   // Switch off the timeout.
@@ -802,76 +802,77 @@ void diff_match_patch_test::testMatchAlphabet() {
   bitmask.insert('a', 4);
   bitmask.insert('b', 2);
   bitmask.insert('c', 1);
-  assertEquals("match_alphabet: Unique.", bitmask, dmp.match_alphabet("abc"));
+  // Unique.
+  QCOMPARE(dmp.match_alphabet("abc"), bitmask);
 
   bitmask = QMap<QChar, int>();
   bitmask.insert('a', 37);
   bitmask.insert('b', 18);
   bitmask.insert('c', 8);
-  assertEquals("match_alphabet: Duplicates.", bitmask,
-               dmp.match_alphabet("abcaba"));
+  // Duplicates.
+  QCOMPARE(dmp.match_alphabet("abcaba"), bitmask);
 }
 
 void diff_match_patch_test::testMatchBitap() {
   // Bitap algorithm.
   dmp.Match_Distance = 100;
   dmp.Match_Threshold = 0.5f;
-  assertEquals("match_bitap: Exact match #1.", 5,
-               dmp.match_bitap("abcdefghijk", "fgh", 5));
+  // Exact match #1.
+  QCOMPARE(dmp.match_bitap("abcdefghijk", "fgh", 5), 5);
 
-  assertEquals("match_bitap: Exact match #2.", 5,
-               dmp.match_bitap("abcdefghijk", "fgh", 0));
+  // Exact match #2.
+  QCOMPARE(dmp.match_bitap("abcdefghijk", "fgh", 0), 5);
 
-  assertEquals("match_bitap: Fuzzy match #1.", 4,
-               dmp.match_bitap("abcdefghijk", "efxhi", 0));
+  // Fuzzy match #1.
+  QCOMPARE(dmp.match_bitap("abcdefgh", "efxhi", 0), 4);
 
-  assertEquals("match_bitap: Fuzzy match #2.", 2,
-               dmp.match_bitap("abcdefghijk", "cdefxyhijk", 5));
+  // Fuzzy match #2.
+  QCOMPARE(dmp.match_bitap("abcdefghijk", "cdefxyhijk", 5), 2);
 
-  assertEquals("match_bitap: Fuzzy match #3.", -1,
-               dmp.match_bitap("abcdefghijk", "bxy", 1));
+  // Fuzzy match #3.
+  QCOMPARE(dmp.match_bitap("abcdefghijk", "bxy", 1), -1);
 
-  assertEquals("match_bitap: Overflow.", 2,
-               dmp.match_bitap("123456789xx0", "3456789x0", 2));
+  // Overflow.
+  QCOMPARE(dmp.match_bitap("123456789xx0", "3456789x0", 2), 2);
 
-  assertEquals("match_bitap: Before start match.", 0,
-               dmp.match_bitap("abcdef", "xxabc", 4));
+  // Before start match.
+  QCOMPARE(dmp.match_bitap("abcdef", "xxabc", 4), 0);
 
-  assertEquals("match_bitap: Beyond end match.", 3,
-               dmp.match_bitap("abcdef", "defyy", 4));
+  // Beyond end match.
+  QCOMPARE(dmp.match_bitap("abcdef", "defyy", 4), 3);
 
-  assertEquals("match_bitap: Oversized pattern.", 0,
-               dmp.match_bitap("abcdef", "xabcdefy", 0));
+  // Oversized pattern.
+  QCOMPARE(dmp.match_bitap("abcdef", "xabcdefy", 0), 0);
 
   dmp.Match_Threshold = 0.4f;
-  assertEquals("match_bitap: Threshold #1.", 4,
-               dmp.match_bitap("abcdefghijk", "efxyhi", 1));
+  // Threshold #1.
+  QCOMPARE(dmp.match_bitap("abcdefghijk", "efxyhi", 1), 4);
 
   dmp.Match_Threshold = 0.3f;
-  assertEquals("match_bitap: Threshold #2.", -1,
-               dmp.match_bitap("abcdefghijk", "efxyhi", 1));
+  // Threshold #2.
+  QCOMPARE(dmp.match_bitap("abcdefghijk", "efxyhi", 1), -1);
 
   dmp.Match_Threshold = 0.0f;
-  assertEquals("match_bitap: Threshold #3.", 1,
-               dmp.match_bitap("abcdefghijk", "bcdef", 1));
+  // Threshold #3.
+  QCOMPARE(dmp.match_bitap("abcdefghijk", "bcdef", 1), 1);
 
   dmp.Match_Threshold = 0.5f;
-  assertEquals("match_bitap: Multiple select #1.", 0,
-               dmp.match_bitap("abcdexyzabcde", "abccde", 3));
+  // Multiple select #1.
+  QCOMPARE(dmp.match_bitap("abcdexyzabcde", "abccde", 3), 3);
 
-  assertEquals("match_bitap: Multiple select #2.", 8,
-               dmp.match_bitap("abcdexyzabcde", "abccde", 5));
+  // Multiple select #2.
+  QCOMPARE(dmp.match_bitap("abcdexyzabcde", "abccde", 5), 8);
 
   dmp.Match_Distance = 10;  // Strict location.
-  assertEquals("match_bitap: Distance test #1.", -1,
-               dmp.match_bitap("abcdefghijklmnopqrstuvwxyz", "abcdefg", 24));
+  // Distance test #1.
+  QCOMPARE(dmp.match_bitap("abcdefghijklmnopqrstuvwxyz", "abcdef", 24), 0);
 
-  assertEquals("match_bitap: Distance test #2.", 0,
-               dmp.match_bitap("abcdefghijklmnopqrstuvwxyz", "abcdxxefg", 1));
+  // Distance test #2.
+  QCOMPARE(dmp.match_bitap("abcdefghijklmnopqrstuvwxyz", "abcdxxefg", 1), 0);
 
   dmp.Match_Distance = 1000;  // Loose location.
-  assertEquals("match_bitap: Distance test #3.", 0,
-               dmp.match_bitap("abcdefghijklmnopqrstuvwxyz", "abcdefg", 24));
+  // Distance test #3.
+  QCOMPARE(dmp.match_bitap("abcdefghijklmnopqrstuvwxyz", "abcdefg", 24), 0);
 }
 
 void diff_match_patch_test::testMatchMain() {
