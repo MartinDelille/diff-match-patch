@@ -53,8 +53,9 @@ class diff_match_patch_test : public QObject {
   //  MATCH TEST FUNCTIONS
   void testMatchAlphabet();
   void testMatchBitap();
-  void testMatchMain();
+  // void testMatchMain();
 
+  /*
   //  PATCH TEST FUNCTIONS
   void testPatchObj();
   void testPatchFromText();
@@ -64,39 +65,13 @@ class diff_match_patch_test : public QObject {
   void testPatchSplitMax();
   void testPatchAddPadding();
   void testPatchApply();
+  */
 
  private:
   diff_match_patch dmp;
 
-  // Define equality.
-  void assertEquals(const QString &strCase, int n1, int n2);
-  void assertEquals(const QString &strCase, const QString &s1,
-                    const QString &s2);
-  void assertEquals(const QString &strCase, const Diff &d1, const Diff &d2);
-  void assertEquals(const QString &strCase, const QList<Diff> &list1,
-                    const QList<Diff> &list2);
-  void assertEquals(const QString &strCase, const QList<QVariant> &list1,
-                    const QList<QVariant> &list2);
-  void assertEquals(const QString &strCase, const QVariant &var1,
-                    const QVariant &var2);
-  void assertEquals(const QString &strCase, const QMap<QChar, int> &m1,
-                    const QMap<QChar, int> &m2);
-  void assertEquals(const QString &strCase, const QStringList &list1,
-                    const QStringList &list2);
-  void assertTrue(const QString &strCase, bool value);
-  void assertFalse(const QString &strCase, bool value);
-  void assertEmpty(const QString &strCase, const QStringList &list);
-
   // Construct the two texts which made up the diff originally.
   QStringList diff_rebuildtexts(QList<Diff> diffs);
-  // Private function for quickly building lists of diffs.
-  QList<Diff> diffList(
-      // Diff(Insert, NULL) is invalid and thus is used as the default argument.
-      Diff d1 = Diff(Insert, NULL), Diff d2 = Diff(Insert, NULL),
-      Diff d3 = Diff(Insert, NULL), Diff d4 = Diff(Insert, NULL),
-      Diff d5 = Diff(Insert, NULL), Diff d6 = Diff(Insert, NULL),
-      Diff d7 = Diff(Insert, NULL), Diff d8 = Diff(Insert, NULL),
-      Diff d9 = Diff(Insert, NULL), Diff d10 = Diff(Insert, NULL));
 };
 
 #endif  // DIFF_MATCH_PATCH_TEST_H

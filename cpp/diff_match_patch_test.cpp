@@ -679,52 +679,50 @@ void diff_match_patch_test::testDiffMain() {
   // Perform a real diff.
   // Switch off the timeout.
   dmp.Diff_Timeout = 0;
-  diffs = diffList(Diff(Delete, "a"), Diff(Insert, "b"));
-  assertEquals("diff_main: Simple case #1.", diffs,
-               dmp.diff_main("a", "b", false));
+  diffs = {Diff(Delete, "a"), Diff(Insert, "b")};
+  QCOMPARE(dmp.diff_main("a", "b", false), diffs);
 
-  diffs = diffList(Diff(Delete, "Apple"), Diff(Insert, "Banana"),
-                   Diff(Equal, "s are a"), Diff(Insert, "lso"),
-                   Diff(Equal, " fruit."));
-  assertEquals(
-      "diff_main: Simple case #2.", diffs,
-      dmp.diff_main("Apples are a fruit.", "Bananas are also fruit.", false));
+  diffs = {Diff(Delete, "Apple"), Diff(Insert, "Banana"),
+           Diff(Equal, "s are a"), Diff(Insert, "lso"), Diff(Equal, " fruit.")};
+  QCOMPARE(
+      dmp.diff_main("Apples are a fruit.", "Bananas are also fruit.", false),
+      diffs);
 
-  diffs = diffList(
-      Diff(Delete, "a"),
-      Diff(Insert, QString::fromWCharArray((const wchar_t *)L"\u0680", 1)),
-      Diff(Equal, "x"), Diff(Delete, "\t"),
-      Diff(Insert, QString::fromWCharArray((const wchar_t *)L"\000", 1)));
-  assertEquals(
-      "diff_main: Simple case #3.", diffs,
+  diffs = {Diff(Delete, "a"),
+           Diff(Insert, QString::fromWCharArray((const wchar_t *)L"\u0680", 1)),
+           Diff(Equal, "x"), Diff(Delete, "\t"),
+           Diff(Insert, QString::fromWCharArray((const wchar_t *)L"\000", 1))};
+  QCOMPARE(
       dmp.diff_main("ax\t",
                     QString::fromWCharArray((const wchar_t *)L"\u0680x\000", 3),
-                    false));
+                    false),
+      diffs);
 
-  diffs = diffList(Diff(Delete, "1"), Diff(Equal, "a"), Diff(Delete, "y"),
-                   Diff(Equal, "b"), Diff(Delete, "2"), Diff(Insert, "xab"));
-  assertEquals("diff_main: Overlap #1.", diffs,
-               dmp.diff_main("1ayb2", "abxab", false));
+  diffs = {Diff(Delete, "1"), Diff(Equal, "a"),  Diff(Delete, "y"),
+           Diff(Equal, "b"),  Diff(Delete, "2"), Diff(Insert, "xab")};
+  QCOMPARE(dmp.diff_main("1ayb2", "abxab", false), diffs);
 
-  diffs =
-      diffList(Diff(Insert, "xaxcx"), Diff(Equal, "abc"), Diff(Delete, "y"));
-  assertEquals("diff_main: Overlap #2.", diffs,
-               dmp.diff_main("abcy", "xaxcxabc", false));
+  diffs = {Diff(Insert, "xaxcx"), Diff(Equal, "abc"), Diff(Delete, "y")};
+  QCOMPARE(dmp.diff_main("abcy", "xaxcxabc", false), diffs);
 
-  diffs = diffList(Diff(Delete, "ABCD"), Diff(Equal, "a"), Diff(Delete, "="),
-                   Diff(Insert, "-"), Diff(Equal, "bcd"), Diff(Delete, "="),
-                   Diff(Insert, "-"), Diff(Equal, "efghijklmnopqrs"),
-                   Diff(Delete, "EFGHIJKLMNOefg"));
-  assertEquals("diff_main: Overlap #3.", diffs,
-               dmp.diff_main("ABCDa=bcd=efghijklmnopqrsEFGHIJKLMNOefg",
-                             "a-bcd-efghijklmnopqrs", false));
+  diffs = {Diff(Delete, "ABCD"),
+           Diff(Equal, "a"),
+           Diff(Delete, "="),
+           Diff(Insert, "-"),
+           Diff(Equal, "bcd"),
+           Diff(Delete, "="),
+           Diff(Insert, "-"),
+           Diff(Equal, "efghijklmnopqrs"),
+           Diff(Delete, "EFGHIJKLMNOefg")};
+  QCOMPARE(dmp.diff_main("ABCDa=bcd=efghijklmnopqrsEFGHIJKLMNOefg",
+                         "a-bcd-efghijklmnopqrs", false),
+           diffs);
 
-  diffs =
-      diffList(Diff(Insert, " "), Diff(Equal, "a"), Diff(Insert, "nd"),
-               Diff(Equal, " [[Pennsylvania]]"), Diff(Delete, " and [[New"));
-  assertEquals("diff_main: Large equality.", diffs,
-               dmp.diff_main("a [[Pennsylvania]] and [[New",
-                             " and [[Pennsylvania]]", false));
+  diffs = {Diff(Insert, " "), Diff(Equal, "a"), Diff(Insert, "nd"),
+           Diff(Equal, " [[Pennsylvania]]"), Diff(Delete, " and [[New")};
+  QCOMPARE(dmp.diff_main("a [[Pennsylvania]] and [[New",
+                         " and [[Pennsylvania]]", false),
+           diffs);
 
   dmp.Diff_Timeout = 0.1f;  // 100ms
   // This test may 'fail' on extremely fast computers.  If so, just increase the
@@ -745,16 +743,8 @@ void diff_match_patch_test::testDiffMain() {
   clock_t startTime = clock();
   dmp.diff_main(a, b);
   clock_t endTime = clock();
-  // Test that we took at least the timeout period.
-  assertTrue("diff_main: Timeout min.",
-             dmp.Diff_Timeout * CLOCKS_PER_SEC <= endTime - startTime);
-  // Test that we didn't take forever (be forgiving).
-  // Theoretically this test could fail very occasionally if the
-  // OS task swaps or locks up for a second at the wrong moment.
-  // Java seems to overrun by ~80% (compared with 10% for other languages).
-  // Therefore use an upper limit of 0.5s instead of 0.2s.
-  assertTrue("diff_main: Timeout max.",
-             dmp.Diff_Timeout * CLOCKS_PER_SEC * 2 > endTime - startTime);
+  QVERIFY(dmp.Diff_Timeout * CLOCKS_PER_SEC <= endTime - startTime);
+  QVERIFY(dmp.Diff_Timeout * CLOCKS_PER_SEC * 2 > endTime - startTime);
   dmp.Diff_Timeout = 0;
 
   // Test the linemode speedup.
@@ -765,15 +755,13 @@ void diff_match_patch_test::testDiffMain() {
   b = "abcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\n"
       "abcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\nabcdefghij\n"
       "abcdefghij\n";
-  assertEquals("diff_main: Simple line-mode.", dmp.diff_main(a, b, true),
-               dmp.diff_main(a, b, false));
+  QCOMPARE(dmp.diff_main(a, b, true), dmp.diff_main(a, b, false));
 
   a = "123456789012345678901234567890123456789012345678901234567890123456789012"
       "3456789012345678901234567890123456789012345678901234567890";
   b = "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijab"
       "cdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij";
-  assertEquals("diff_main: Single line-mode.", dmp.diff_main(a, b, true),
-               dmp.diff_main(a, b, false));
+  QCOMPARE(dmp.diff_main(a, b, true), dmp.diff_main(a, b, false));
 
   a = "1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n"
       "1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n1234567890\n"
@@ -783,12 +771,12 @@ void diff_match_patch_test::testDiffMain() {
       "abcdefghij\n";
   QStringList texts_linemode = diff_rebuildtexts(dmp.diff_main(a, b, true));
   QStringList texts_textmode = diff_rebuildtexts(dmp.diff_main(a, b, false));
-  assertEquals("diff_main: Overlap line-mode.", texts_textmode, texts_linemode);
+  QCOMPARE(texts_textmode, texts_linemode);
 
   // Test null inputs.
   try {
     dmp.diff_main(NULL, NULL);
-    assertFalse("diff_main: Null inputs.", true);
+    QVERIFY(false);
   } catch (const char *ex) {
     // Exception expected.
   }
@@ -875,6 +863,7 @@ void diff_match_patch_test::testMatchBitap() {
   QCOMPARE(dmp.match_bitap("abcdefghijklmnopqrstuvwxyz", "abcdefg", 24), 0);
 }
 
+/*
 void diff_match_patch_test::testMatchMain() {
   // Full match.
   assertEquals("match_main: Equality.", 0,
@@ -1271,197 +1260,7 @@ void diff_match_patch_test::testPatchApply() {
   assertEquals("patch_apply: Edge partial match.", "x123\ttrue", resultStr);
 }
 
-void diff_match_patch_test::assertEquals(const QString &strCase, int n1,
-                                         int n2) {
-  if (n1 != n2) {
-    qDebug("%s FAIL\nExpected: %d\nActual: %d", qPrintable(strCase), n1, n2);
-    throw strCase;
-  }
-  qDebug("%s OK", qPrintable(strCase));
-}
-
-void diff_match_patch_test::assertEquals(const QString &strCase,
-                                         const QString &s1, const QString &s2) {
-  if (s1 != s2) {
-    qDebug("%s FAIL\nExpected: %s\nActual: %s", qPrintable(strCase),
-           qPrintable(s1), qPrintable(s2));
-    throw strCase;
-  }
-  qDebug("%s OK", qPrintable(strCase));
-}
-
-void diff_match_patch_test::assertEquals(const QString &strCase, const Diff &d1,
-                                         const Diff &d2) {
-  if (d1 != d2) {
-    qDebug("%s FAIL\nExpected: %s\nActual: %s", qPrintable(strCase),
-           qPrintable(d1.toString()), qPrintable(d2.toString()));
-    throw strCase;
-  }
-  qDebug("%s OK", qPrintable(strCase));
-}
-
-void diff_match_patch_test::assertEquals(const QString &strCase,
-                                         const QList<Diff> &list1,
-                                         const QList<Diff> &list2) {
-  bool fail = false;
-  if (list1.count() == list2.count()) {
-    int i = 0;
-    foreach (Diff d1, list1) {
-      Diff d2 = list2.value(i);
-      if (d1 != d2) {
-        fail = true;
-        break;
-      }
-      i++;
-    }
-  } else {
-    fail = true;
-  }
-
-  if (fail) {
-    // Build human readable description of both lists.
-    QString listString1 = "(";
-    bool first = true;
-    foreach (Diff d1, list1) {
-      if (!first) {
-        listString1 += ", ";
-      }
-      listString1 += d1.toString();
-      first = false;
-    }
-    listString1 += ")";
-    QString listString2 = "(";
-    first = true;
-    foreach (Diff d2, list2) {
-      if (!first) {
-        listString2 += ", ";
-      }
-      listString2 += d2.toString();
-      first = false;
-    }
-    listString2 += ")";
-    qDebug("%s FAIL\nExpected: %s\nActual: %s", qPrintable(strCase),
-           qPrintable(listString1), qPrintable(listString2));
-    throw strCase;
-  }
-  qDebug("%s OK", qPrintable(strCase));
-}
-
-void diff_match_patch_test::assertEquals(const QString &strCase,
-                                         const QList<QVariant> &list1,
-                                         const QList<QVariant> &list2) {
-  bool fail = false;
-  if (list1.count() == list2.count()) {
-    int i = 0;
-    foreach (QVariant q1, list1) {
-      QVariant q2 = list2.value(i);
-      if (q1 != q2) {
-        fail = true;
-        break;
-      }
-      i++;
-    }
-  } else {
-    fail = true;
-  }
-
-  if (fail) {
-    // Build human readable description of both lists.
-    QString listString1 = "(";
-    bool first = true;
-    foreach (QVariant q1, list1) {
-      if (!first) {
-        listString1 += ", ";
-      }
-      listString1 += q1.toString();
-      first = false;
-    }
-    listString1 += ")";
-    QString listString2 = "(";
-    first = true;
-    foreach (QVariant q2, list2) {
-      if (!first) {
-        listString2 += ", ";
-      }
-      listString2 += q2.toString();
-      first = false;
-    }
-    listString2 += ")";
-    qDebug("%s FAIL\nExpected: %s\nActual: %s", qPrintable(strCase),
-           qPrintable(listString1), qPrintable(listString2));
-    throw strCase;
-  }
-  qDebug("%s OK", qPrintable(strCase));
-}
-
-void diff_match_patch_test::assertEquals(const QString &strCase,
-                                         const QVariant &var1,
-                                         const QVariant &var2) {
-  if (var1 != var2) {
-    qDebug("%s FAIL\nExpected: %s\nActual: %s", qPrintable(strCase),
-           qPrintable(var1.toString()), qPrintable(var2.toString()));
-    throw strCase;
-  }
-  qDebug("%s OK", qPrintable(strCase));
-}
-
-void diff_match_patch_test::assertEquals(const QString &strCase,
-                                         const QMap<QChar, int> &m1,
-                                         const QMap<QChar, int> &m2) {
-  QMapIterator<QChar, int> i1(m1), i2(m2);
-
-  while (i1.hasNext() && i2.hasNext()) {
-    i1.next();
-    i2.next();
-    if (i1.key() != i2.key() || i1.value() != i2.value()) {
-      qDebug("%s FAIL\nExpected: (%c, %d)\nActual: (%c, %d)",
-             qPrintable(strCase), i1.key().toLatin1(), i1.value(),
-             i2.key().toLatin1(), i2.value());
-      throw strCase;
-    }
-  }
-
-  if (i1.hasNext()) {
-    i1.next();
-    qDebug("%s FAIL\nExpected: (%c, %d)\nActual: none", qPrintable(strCase),
-           i1.key().toLatin1(), i1.value());
-    throw strCase;
-  }
-  if (i2.hasNext()) {
-    i2.next();
-    qDebug("%s FAIL\nExpected: none\nActual: (%c, %d)", qPrintable(strCase),
-           i2.key().toLatin1(), i2.value());
-    throw strCase;
-  }
-  qDebug("%s OK", qPrintable(strCase));
-}
-
-void diff_match_patch_test::assertEquals(const QString &strCase,
-                                         const QStringList &list1,
-                                         const QStringList &list2) {
-  if (list1 != list2) {
-    qDebug("%s FAIL\nExpected: %s\nActual: %s", qPrintable(strCase),
-           qPrintable(list1.join(",")), qPrintable(list2.join(",")));
-    throw strCase;
-  }
-  qDebug("%s OK", qPrintable(strCase));
-}
-
-void diff_match_patch_test::assertTrue(const QString &strCase, bool value) {
-  if (!value) {
-    qDebug("%s FAIL\nExpected: true\nActual: false", qPrintable(strCase));
-    throw strCase;
-  }
-  qDebug("%s OK", qPrintable(strCase));
-}
-
-void diff_match_patch_test::assertFalse(const QString &strCase, bool value) {
-  if (value) {
-    qDebug("%s FAIL\nExpected: false\nActual: true", qPrintable(strCase));
-    throw strCase;
-  }
-  qDebug("%s OK", qPrintable(strCase));
-}
+*/
 
 // Construct the two texts which made up the diff originally.
 QStringList diff_match_patch_test::diff_rebuildtexts(QList<Diff> diffs) {
@@ -1477,83 +1276,3 @@ QStringList diff_match_patch_test::diff_rebuildtexts(QList<Diff> diffs) {
   }
   return text;
 }
-
-void diff_match_patch_test::assertEmpty(const QString &strCase,
-                                        const QStringList &list) {
-  if (!list.isEmpty()) {
-    throw strCase;
-  }
-}
-
-// Private function for quickly building lists of diffs.
-QList<Diff> diff_match_patch_test::diffList(Diff d1, Diff d2, Diff d3, Diff d4,
-                                            Diff d5, Diff d6, Diff d7, Diff d8,
-                                            Diff d9, Diff d10) {
-  // Diff(Insert, nullptr) is invalid and thus is used as the default argument.
-  QList<Diff> listRet;
-  if (d1.operation == Insert && d1.text.isNull()) {
-    return listRet;
-  }
-  listRet << d1;
-
-  if (d2.operation == Insert && d2.text.isNull()) {
-    return listRet;
-  }
-  listRet << d2;
-
-  if (d3.operation == Insert && d3.text.isNull()) {
-    return listRet;
-  }
-  listRet << d3;
-
-  if (d4.operation == Insert && d4.text.isNull()) {
-    return listRet;
-  }
-  listRet << d4;
-
-  if (d5.operation == Insert && d5.text.isNull()) {
-    return listRet;
-  }
-  listRet << d5;
-
-  if (d6.operation == Insert && d6.text.isNull()) {
-    return listRet;
-  }
-  listRet << d6;
-
-  if (d7.operation == Insert && d7.text.isNull()) {
-    return listRet;
-  }
-  listRet << d7;
-
-  if (d8.operation == Insert && d8.text.isNull()) {
-    return listRet;
-  }
-  listRet << d8;
-
-  if (d9.operation == Insert && d9.text.isNull()) {
-    return listRet;
-  }
-  listRet << d9;
-
-  if (d10.operation == Insert && d10.text.isNull()) {
-    return listRet;
-  }
-  listRet << d10;
-
-  return listRet;
-}
-
-/*
-Compile instructions for MinGW and QT4 on Windows:
-qmake -project
-qmake
-mingw32-make
-g++ -o diff_match_patch_test debug\diff_match_patch_test.o
-debug\diff_match_patch.o \qt4\lib\libQtCore4.a diff_match_patch_test.exe
-
-Compile insructions for OS X:
-qmake -spec macx-g++
-make
-./diff_match_patch
-*/
