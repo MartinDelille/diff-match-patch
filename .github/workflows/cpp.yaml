@@ -11,13 +11,18 @@ on:
 jobs:
   build_and_test:
     name: Build  and Test
+    strategy:
+      matrix:
+        qt_version:
+          - "5.15.2"
+          - "6.8.1"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: "5.15.2"
+          version: ${{ matrix.qt_version }}
           target: "desktop"
       - name: Build and test
         run: cd cpp && cmake . && cmake --build . --verbose && ctest . --verbose
